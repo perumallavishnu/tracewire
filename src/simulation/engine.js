@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid';
+import { behaviorOf } from '../nodeDefs/nodeTypes';
 
 // A request's simulated backoff before a retry attempt.
 const RETRY_BACKOFF_MS = 80;
@@ -59,6 +60,7 @@ export class SimulationEngine {
         failed: 0,
         cacheHits: 0,
         cacheMisses: 0,
+        breakerOpenUntil: 0, // circuit breakers only
       });
     }
     return this.nodeState.get(nodeId);
@@ -139,7 +141,7 @@ export class SimulationEngine {
     if (!this.chaos.monkeyEnabled) return;
     if (this.time * 1000 < this.chaos._nextMonkeyAt) return;
     this.chaos._nextMonkeyAt = this.time * 1000 + this.chaos.monkeyIntervalMs;
-    const candidates = graph.nodes.filter((n) => n.data.kind !== 'generator' && n.data.kind !== 'client');
+    const candidates = graph.nodes.filter((n) => !['generator', 'client', 'note'].includes(n.data.kind));
     if (candidates.length === 0) return;
     const target = candidates[Math.floor(Math.random() * candidates.length)];
     const roll = Math.random();
@@ -176,6 +178,12 @@ export class SimulationEngine {
       if (e.type === 'latency') latencyMultiplier *= e.multiplier;
       if (e.type === 'capacity') capacityFraction *= e.fractionRemaining;
     }
+    // replicas multiply concurrent capacity and queue partitions' drain rate;
+    // a rate limiter's limit is global, so its replicas only add redundancy
+    const replicas = base.replicas || 1;
+    const behavior = behaviorOf(node.data.kind);
+    if (base.capacity !== undefined && behavior !== 'ratelimiter') base.capacity *= replicas;
+    if (base.drainRate !== undefined) base.drainRate *= replicas;
     return { ...base, latencyMultiplier, capacityFraction };
   }
 
@@ -257,7 +265,7 @@ export class SimulationEngine {
 
     // 3. Drain queue-type nodes (queue / broker) toward their downstream target
     for (const node of graph.nodes) {
-      if (node.data.kind !== 'queue' && node.data.kind !== 'broker') continue;
+      if (behaviorOf(node.data.kind) !== 'queue') continue;
       const st = this.ensureNodeState(node.id);
       if (st.queue.length === 0) continue;
       const cfg = this._effectiveConfig(node);
@@ -317,7 +325,7 @@ export class SimulationEngine {
 
     const st = this.ensureNodeState(node.id);
     const cfg = this._effectiveConfig(node);
-    const kind = node.data.kind;
+    const kind = behaviorOf(node.data.kind);
 
     if (st.status === 'down') {
       this._fail(req, graph, `node ${node.data.label} is down`, node);
@@ -356,7 +364,12 @@ export class SimulationEngine {
       return;
     }
 
-    if (kind === 'queue' || kind === 'broker') {
+    if (kind === 'circuitbreaker') {
+      this._passBreaker(node, req, graph, cfg, st);
+      return;
+    }
+
+    if (kind === 'queue') {
       if (st.queue.length >= (cfg.queueCapacity ?? Infinity)) {
         this._fail(req, graph, 'queue full', node);
         return;
@@ -365,7 +378,7 @@ export class SimulationEngine {
       return; // drained in the tick loop
     }
 
-    if (kind === 'cache' || kind === 'cdn') {
+    if (kind === 'cache') {
       const admitted = this._admit(node, st, cfg);
       if (!admitted) {
         this._fail(req, graph, 'overloaded', node);
@@ -378,7 +391,9 @@ export class SimulationEngine {
       if (isHit) st.cacheHits += 1; else st.cacheMisses += 1;
       const finalLatency = latency * cfg.latencyMultiplier;
       this._occupy(st, finalLatency / 1000);
-      this._completeAndForward(node, req, graph, finalLatency);
+      // a hit is answered here; only misses travel on to the origin
+      if (isHit) this._succeed(req, graph, node, finalLatency);
+      else this._completeAndForward(node, req, graph, finalLatency);
       return;
     }
 
@@ -386,7 +401,7 @@ export class SimulationEngine {
     if (cfg.cacheHitRate !== undefined && Math.random() < cfg.cacheHitRate) {
       st.cacheHits += 1;
       const latency = ((cfg.baseLatencyMs ?? 2) + rand(0, cfg.jitterMs ?? 1)) * cfg.latencyMultiplier;
-      this._completeAndForward(node, req, graph, latency);
+      this._succeed(req, graph, node, latency);
       return;
     }
     if (cfg.cacheHitRate !== undefined) st.cacheMisses += 1;
@@ -425,7 +440,7 @@ export class SimulationEngine {
   // once the node has spare capacity again.
   _drainGenericQueues(graph) {
     for (const node of graph.nodes) {
-      if (node.data.kind === 'queue' || node.data.kind === 'broker') continue;
+      if (behaviorOf(node.data.kind) === 'queue') continue;
       const st = this.nodeState.get(node.id);
       if (!st || st.queue.length === 0) continue;
       const cfg = this._effectiveConfig(node);
@@ -434,6 +449,38 @@ export class SimulationEngine {
         this._runGenericProcessing(node, req, graph, cfg, st);
       }
     }
+  }
+
+  // Forwards only to downstreams that can take work. When none can, the breaker
+  // opens for cooldownSec and rejects instantly without retries, so callers stop
+  // piling onto a dead dependency. The first request after cooldown is the probe.
+  _passBreaker(node, req, graph, cfg, st) {
+    if (this.time < st.breakerOpenUntil) {
+      req.retriesLeft = 0;
+      this._fail(req, graph, 'circuit open', node);
+      return;
+    }
+    const outs = this._outgoing(graph, node.id);
+    const healthy = outs.filter((e) => !this._isUnavailable(graph, e.target));
+    if (outs.length > 0 && healthy.length === 0) {
+      st.breakerOpenUntil = this.time + (cfg.cooldownSec ?? 3);
+      this.log(`Circuit opened at ${node.data.label}`, 'warn');
+      req.retriesLeft = 0;
+      this._fail(req, graph, 'circuit open', node);
+      return;
+    }
+    this._completeAndForward(node, req, graph, cfg.baseLatencyMs ?? 1, healthy.length ? healthy : null);
+  }
+
+  _isUnavailable(graph, nodeId) {
+    const target = graph.nodes.find((n) => n.id === nodeId);
+    if (!target) return true;
+    const st = this.ensureNodeState(nodeId);
+    if (st.status === 'down') return true;
+    const cfg = this._effectiveConfig(target);
+    if (cfg.capacity === undefined || behaviorOf(target.data.kind) === 'ratelimiter') return false;
+    const queueFull = cfg.queueCapacity === undefined || st.queue.length >= cfg.queueCapacity;
+    return !this._admit(target, st, cfg) && queueFull;
   }
 
   _admit(node, st, cfg) {
