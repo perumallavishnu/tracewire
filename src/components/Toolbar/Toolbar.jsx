@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { useSimStore } from '../../store/useSimStore';
 import { useDiagramStore } from '../../store/useDiagramStore';
+import { useUiStore } from '../../store/useUiStore';
 
 const SPEEDS = [0.5, 1, 2, 4];
 
@@ -18,6 +19,11 @@ export default function Toolbar() {
   const loadDiagram = useDiagramStore((s) => s.loadDiagram);
   const resetToSeed = useDiagramStore((s) => s.resetToSeed);
   const clearCanvas = useDiagramStore((s) => s.clearCanvas);
+  const runScore = useUiStore((s) => s.runScore);
+  const setLearnOpen = useUiStore((s) => s.setLearnOpen);
+  const interviewActive = useUiStore((s) => s.interview.active);
+  const startInterview = useUiStore((s) => s.startInterview);
+  const endInterview = useUiStore((s) => s.endInterview);
 
   const handleExport = () => {
     const blob = new Blob([JSON.stringify({ nodes, edges, customTypes }, null, 2)], { type: 'application/json' });
@@ -74,6 +80,20 @@ export default function Toolbar() {
         <button className="tool-btn" onClick={resetSim} title="Reset simulation metrics & runtime state">
           Reset sim
         </button>
+        <button className="tool-btn tool-btn--accent" onClick={runScore} title="Grade the design (S)">
+          Score
+        </button>
+      </div>
+
+      <div className="toolbar__study">
+        <button
+          className={`tool-btn${interviewActive ? ' is-active' : ''}`}
+          onClick={interviewActive ? endInterview : startInterview}
+          title="Timed mock interview: clarify, estimate, design, deep dive"
+        >
+          {interviewActive ? 'End interview' : 'Practice interview'}
+        </button>
+        <button className="tool-btn" onClick={() => setLearnOpen(true)}>Learn</button>
       </div>
 
       <div className="toolbar__file-ops">

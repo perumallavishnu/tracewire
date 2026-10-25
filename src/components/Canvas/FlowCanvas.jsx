@@ -3,9 +3,11 @@ import { ReactFlow, Background, Controls, MiniMap, BackgroundVariant, useReactFl
 import '@xyflow/react/dist/style.css';
 import { useDiagramStore } from '../../store/useDiagramStore';
 import SchematicNode from './SchematicNode';
+import NoteNode from './NoteNode';
 import TraceEdge from './TraceEdge';
 
-const nodeTypes = { schematic: SchematicNode };
+const nodeTypes = { schematic: SchematicNode, note: NoteNode };
+const DELETE_KEYS = ['Delete', 'Backspace'];
 const edgeTypes = { trace: TraceEdge };
 const defaultEdgeOptions = { type: 'trace' };
 
@@ -38,9 +40,28 @@ export default function FlowCanvas() {
     [screenToFlowPosition, addNode, setSelectedNode]
   );
 
+  // React Flow already handles Tab focus, Enter/Space select and arrow-key moves;
+  // Escape additionally clears our own selection so the Inspector resets.
+  const onKeyDown = useCallback(
+    (e) => {
+      if (e.key === 'Escape') {
+        setSelectedNode(null);
+        setSelectedEdge(null);
+      }
+    },
+    [setSelectedNode, setSelectedEdge]
+  );
+
   return (
-    <div className="flow-canvas" ref={wrapperRef} onDragOver={onDragOver} onDrop={onDrop}>
+    <div className="flow-canvas" ref={wrapperRef} onDragOver={onDragOver} onDrop={onDrop} onKeyDown={onKeyDown}>
       <ReactFlow
+        deleteKeyCode={DELETE_KEYS}
+        onNodesDelete={() => setSelectedNode(null)}
+        onEdgesDelete={() => setSelectedEdge(null)}
+        onSelectionChange={({ nodes: sel, edges: selEdges }) => {
+          if (sel.length === 1) setSelectedNode(sel[0].id);
+          else if (selEdges.length === 1 && sel.length === 0) setSelectedEdge(selEdges[0].id);
+        }}
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -60,8 +81,8 @@ export default function FlowCanvas() {
         fitView
       >
         <Background variant={BackgroundVariant.Dots} gap={22} size={1} color="var(--grid-dot)" />
-        <Controls showInteractive={false} />
-        <MiniMap pannable zoomable className="tw-minimap" />
+        <Controls showInteractive={false} position="top-left" />
+        <MiniMap pannable zoomable className="tw-minimap" nodeColor={(n) => (n.type === 'note' ? 'var(--note)' : 'var(--trace)')} />
       </ReactFlow>
     </div>
   );
