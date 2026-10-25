@@ -12,6 +12,10 @@ It's built for learning and teaching system design, prototyping
 architectures, and stress-testing "what happens if X goes down" scenarios
 without touching real infrastructure.
 
+It also works as an interview trainer: pick a practice problem, design
+against its requirements, size it with the capacity planner, and get a
+scored breakdown with concrete fixes.
+
 ![Tracewire interface overview](docs/screenshots/interface-overview.png)
 
 ---
@@ -33,9 +37,43 @@ without touching real infrastructure.
 
 - **Visual architecture canvas** — drag-and-drop components, connect them
   with a click-and-drag, pan/zoom, minimap.
-- **Built-in component library** — Traffic Generator, Load Balancer (round
-  robin / least-connections / random), Service, Database, Cache, Message
-  Queue, CDN Edge, Auth Service, Message Broker, Rate Limiter, Client.
+- **39 built-in components** in six searchable categories:
+  - *Traffic*: Traffic Generator, Client
+  - *Networking*: DNS, CDN Edge, Origin Shield, Load Balancer (round robin /
+    least-connections / random), Reverse Proxy, API Gateway, Rate Limiter
+  - *Compute*: Service, Auth Service, WebSocket Server, Worker Pool, Task
+    Scheduler, Stream Processor, Notification Service
+  - *Storage*: SQL, NoSQL, Cache, Object Storage, File Store, Search Index,
+    Graph DB, Time-Series DB, Data Warehouse, Vector DB, Geospatial Index
+  - *Messaging*: Message Queue, Pub/Sub Broker, Event Log
+  - *Infrastructure*: Circuit Breaker, Monitoring, Service Mesh, Service
+    Discovery, Coordination Service, Distributed Lock, ID Generator,
+    Sharded Counter, Config Service
+- **Replicas** on every scalable component, so capacity planning is a
+  number you can turn, and a single replica shows up as a single point of
+  failure.
+- **Practice problems** — eight design problems (link shortener, social
+  feed, group chat, API quotas, video streaming, ride matching,
+  notifications, flash-sale checkout), each with peak requirements,
+  constraints, hints revealed one at a time, and a loadable reference design.
+- **Design scoring** — grades the canvas out of 100 across requirements,
+  scalability, availability, latency and cost. It tests the design at the
+  problem's full load (tens of thousands of req/s) with a steady-state model:
+  per-component throughput from Little's law, M/M/c queueing delay,
+  critical-path p99, single-point-of-failure detection and replica sizing.
+  Every missed check comes with a fix.
+- **Capacity planner** — back-of-envelope estimator (DAU → QPS, storage,
+  egress) plus a per-component load table and one-click "right-size
+  replicas".
+- **Trade-offs** — gains, costs and alternatives for the selected component.
+- **Practice interview mode** — six timed phases (clarify → estimate → API &
+  data → high-level design → deep dive → wrap-up) with prompts per phase.
+- **Sticky notes** on the canvas for assumptions and open questions.
+- **Learn drawer** — concept cards (Little's law, queueing, caching,
+  replication, CAP, backpressure, idempotency, SLOs) and this-vs-that
+  comparisons (SQL vs NoSQL, push vs pull, and more).
+- **Keyboard support** — Tab/Enter/arrows on the canvas, Delete, Esc,
+  Space to run/pause, S to score, Enter on a palette item to add it.
 - **Custom component builder** — define your own reusable node type by
   toggling capacity limits, latency, random failures, queueing, and
   cache-like hit-rate behavior. No coding required.
@@ -48,6 +86,8 @@ without touching real infrastructure.
     wrong)
   - Queue backpressure and overflow handling
   - Load-balanced failover across healthy backends
+  - Caches and CDNs that answer hits locally and only forward misses
+  - Circuit breakers that fail fast while every downstream is down or full
 - **Chaos injection** — kill/revive nodes, sever/heal connections, latency
   spikes, capacity drops, and an automatic "chaos monkey" mode that breaks
   things on its own on a timer.
@@ -93,7 +133,7 @@ your terminal.
 ### Install & run (development mode)
 
 ```bash
-git clone https://github.com/<your-username>/tracewire.git
+git clone https://github.com/perumallavishnu/tracewire.git
 cd tracewire
 npm install
 npm run dev
@@ -128,8 +168,8 @@ to stand up.
 
 ## How to use it
 
-1. **Drag components onto the canvas** from the left palette. Drop them
-   anywhere.
+1. **Drag components onto the canvas** from the left palette (or focus one
+   and press Enter). Use the search box to find one of the 39 types.
 2. **Connect components** by dragging from the small dot on the right edge
    of one component to the dot on the left edge of another.
 3. **Click a component** to open the Inspector (right panel). Edit its
@@ -156,6 +196,24 @@ to stand up.
     share architectures. Your most recent diagram also auto-saves to your
     browser's local storage.
 
+### Practicing a design problem
+
+1. Open the **Problems** tab on the left and pick a problem. Read its
+   requirements and constraints; reveal hints only if you are stuck.
+2. Build your design, then open **Capacity** on the right. The estimator is
+   prefilled from the problem, and the load table shows each component at
+   the problem's peak. Press **Right-size replicas** or tune them by hand.
+3. Press **Score** (or the S key). Each category lists what earned points
+   and what to change.
+4. Compare with **Load reference design** (it replaces the canvas, so
+   export your own first).
+5. For a full mock interview, press **Practice interview** in the toolbar
+   and work through the timed phases.
+
+![Capacity planner](docs/screenshots/capacity.png)
+
+![Interview mode and trade-offs](docs/screenshots/interview-tradeoffs.png)
+
 ---
 
 ## Project structure
@@ -169,13 +227,21 @@ tracewire/
 │   ├── main.jsx                 React entry point
 │   ├── App.jsx                  App shell & simulation loop
 │   ├── styles/app.css           All styling (design tokens, layout, components)
-│   ├── nodeDefs/                Built-in component definitions & field schemas
-│   ├── simulation/engine.js     The simulation engine — traffic generation,
+│   ├── nodeDefs/                Component definitions, field schemas, trade-off notes
+│   ├── simulation/engine.js     The live simulation engine — traffic generation,
 │   │                            capacity/latency/failure modeling, retries,
 │   │                            cascading failure, chaos injection
-│   ├── store/                   Zustand stores (diagram graph, sim runtime)
-│   ├── utils/edgePath.js        Connection-line geometry helper
-│   └── components/              UI: Canvas, Palette, Inspector, Toolbar,
+│   ├── simulation/analyze.js    Steady-state model: load, utilization, queueing,
+│   │                            p99, single points of failure, replica sizing
+│   ├── scoring/score.js         100-point design rubric built on analyze.js
+│   ├── problems/                Practice problems and their reference designs
+│   ├── interview/phases.js      Mock-interview phases and prompts
+│   ├── learn/concepts.js        Learn drawer content
+│   ├── store/                   Zustand stores (diagram graph, sim runtime, UI)
+│   ├── utils/                   Connection geometry, number formatting
+│   └── components/              UI: Canvas, Palette, Problems, RightPanel
+│                                 (Inspect / Trade-offs / Capacity / Score),
+│                                 Interview bar, Learn drawer, Toolbar,
 │                                 Metrics dock, Chaos dock, Node builder modal
 ```
 
@@ -197,8 +263,9 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for more detail, including coding
 conventions and how new node types / chaos effects are structured.
 
 Good first areas to contribute in:
-- New built-in component types (e.g. object storage, sharded database, API
-  gateway)
+- New practice problems (with a reference design that scores 90+)
+- Richer component behavior (e.g. read replicas with replication lag,
+  sharding with hot keys)
 - Additional chaos scenarios (e.g. clock skew, DNS failure, disk full)
 - Accessibility and mobile/touch support for the canvas
 - Alternate persistence backends (e.g. exporting to draw.io/Mermaid)
@@ -208,17 +275,12 @@ Good first areas to contribute in:
 ## Reporting bugs / getting help
 
 - **Bugs & feature requests**: please open a
-  [GitHub Issue](https://github.com/<your-username>/tracewire/issues) on
+  [GitHub Issue](https://github.com/perumallavishnu/tracewire/issues) on
   this repository, including steps to reproduce and, if relevant, your
   exported diagram JSON.
 - **Questions / general discussion**: use
-  [GitHub Discussions](https://github.com/<your-username>/tracewire/discussions)
+  [GitHub Discussions](https://github.com/perumallavishnu/tracewire/discussions)
   if enabled on the repo, or open an issue tagged `question`.
-- **Direct contact**: `<your-contact-email>`
-
-> Maintainer note: replace the placeholders above (`<your-username>`,
-> `<your-contact-email>`) with your actual GitHub repository path and
-> contact details before publishing.
 
 ---
 
