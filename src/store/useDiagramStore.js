@@ -58,6 +58,12 @@ export const useDiagramStore = create((set, get) => ({
   },
 
   addNode(kind, position) {
+    if (kind === 'note') {
+      const id = `note-${nanoid(5)}`;
+      const node = { id, type: 'note', position, data: { kind: 'note', label: 'Note', text: '' } };
+      set({ nodes: [...get().nodes, node] });
+      return id;
+    }
     const def = NODE_TYPES[kind] || get().customTypes[kind];
     const label = def ? def.label : kind;
     const id = `${kind}-${nanoid(5)}`;
@@ -75,6 +81,21 @@ export const useDiagramStore = create((set, get) => ({
     set({
       nodes: get().nodes.map((n) =>
         n.id === nodeId ? { ...n, data: { ...n.data, config: { ...n.data.config, ...patch } } } : n
+      ),
+    });
+  },
+
+  setNoteText(nodeId, text) {
+    set({
+      nodes: get().nodes.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, text } } : n)),
+    });
+  },
+
+  // patches: { [nodeId]: configPatch } applied in one update (used by right-sizing)
+  updateManyConfigs(patches) {
+    set({
+      nodes: get().nodes.map((n) =>
+        patches[n.id] ? { ...n, data: { ...n.data, config: { ...n.data.config, ...patches[n.id] } } } : n
       ),
     });
   },
@@ -115,7 +136,13 @@ export const useDiagramStore = create((set, get) => ({
   },
 
   loadDiagram(diagram) {
-    set({ nodes: diagram.nodes || [], edges: diagram.edges || [], customTypes: diagram.customTypes || {} });
+    set({
+      nodes: diagram.nodes || [],
+      edges: diagram.edges || [],
+      customTypes: diagram.customTypes || {},
+      selectedNodeId: null,
+      selectedEdgeId: null,
+    });
   },
 
   resetToSeed() {

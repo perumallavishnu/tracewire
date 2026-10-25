@@ -18,6 +18,7 @@ function SchematicNodeInner({ id, data, selected }) {
   const barColor = util > 0.9 ? 'var(--accent-error)' : util > 0.6 ? 'var(--accent-warn)' : 'var(--accent-signal)';
   const customType = useDiagramStore((s) => s.customTypes[data.kind]);
   const glyph = NODE_TYPES[data.kind]?.glyph || customType?.glyph || '?';
+  const replicas = data.config.replicas ?? 1;
 
   return (
     <div
@@ -28,12 +29,13 @@ function SchematicNodeInner({ id, data, selected }) {
       <div className="schematic-node__head">
         <span className="schematic-node__glyph">{glyph}</span>
         <span className="schematic-node__label">{data.label}</span>
+        {replicas > 1 && <span className="schematic-node__replicas mono" title={`${replicas} replicas`}>×{replicas}</span>}
       </div>
       <div className="schematic-node__stats">
         {runtime && data.kind !== 'client' && data.kind !== 'generator' && (
           <>
             {'inFlight' in runtime && (data.config.capacity !== undefined) && (
-              <span className="mono">{runtime.inFlight}/{Math.round((data.config.capacity || 0))}</span>
+              <span className="mono">{runtime.inFlight}/{Math.round((data.config.capacity || 0) * (data.kind === 'ratelimiter' ? 1 : replicas))}</span>
             )}
             {data.config.queueCapacity !== undefined && (
               <span className="mono">q:{runtime.queueDepth}</span>

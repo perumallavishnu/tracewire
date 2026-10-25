@@ -9,7 +9,7 @@ export const PROBLEMS = [
     title: 'Link Shortener',
     difficulty: 'Easy',
     summary: 'Turn long URLs into short codes and redirect anyone who opens one. Reads dwarf writes.',
-    requirements: { readQps: 20000, writeQps: 200, storageGb: 300, p99Ms: 100, dau: 30_000_000, readsPerUser: 6 },
+    requirements: { readQps: 20000, writeQps: 200, storageGb: 300, p99Ms: 100, dau: 30_000_000, requestsPerUser: 20 },
     constraints: [
       'Codes are 7 characters and must not be guessable in sequence.',
       'A redirect must answer in under 100 ms at p99.',
@@ -46,7 +46,7 @@ export const PROBLEMS = [
     title: 'Social Home Feed',
     difficulty: 'Hard',
     summary: 'Users follow each other and open an app to a ranked feed of recent posts from people they follow.',
-    requirements: { readQps: 40000, writeQps: 2000, storageGb: 20000, p99Ms: 250, dau: 150_000_000, readsPerUser: 20 },
+    requirements: { readQps: 40000, writeQps: 2000, storageGb: 20000, p99Ms: 250, dau: 150_000_000, requestsPerUser: 8 },
     constraints: [
       'Opening the feed must feel instant: p99 under 250 ms.',
       'A few accounts have tens of millions of followers.',
@@ -85,7 +85,7 @@ export const PROBLEMS = [
     title: 'Group Chat',
     difficulty: 'Medium',
     summary: 'One-to-one and group messaging with delivery receipts and online presence.',
-    requirements: { readQps: 30000, writeQps: 10000, storageGb: 5000, p99Ms: 150, dau: 60_000_000, readsPerUser: 40 },
+    requirements: { readQps: 30000, writeQps: 10000, storageGb: 5000, p99Ms: 150, dau: 60_000_000, requestsPerUser: 19 },
     constraints: [
       'Messages must arrive in order within a conversation.',
       'Recipients who are online get messages pushed, not polled.',
@@ -122,7 +122,7 @@ export const PROBLEMS = [
     title: 'Public API with Quotas',
     difficulty: 'Medium',
     summary: 'A developer API where every key has a per-second and per-day quota enforced across many servers.',
-    requirements: { readQps: 50000, writeQps: 5000, storageGb: 50, p99Ms: 80, dau: 2_000_000, readsPerUser: 2000 },
+    requirements: { readQps: 50000, writeQps: 5000, storageGb: 50, p99Ms: 80, dau: 2_000_000, requestsPerUser: 800 },
     constraints: [
       'Quota checks add no more than a few milliseconds.',
       'Limits hold across every server, not per server.',
@@ -160,7 +160,7 @@ export const PROBLEMS = [
     title: 'Video Streaming',
     difficulty: 'Hard',
     summary: 'Creators upload videos that are transcoded and streamed to viewers worldwide.',
-    requirements: { readQps: 60000, writeQps: 100, storageGb: 2_000_000, p99Ms: 300, dau: 200_000_000, readsPerUser: 25 },
+    requirements: { readQps: 60000, writeQps: 100, storageGb: 2_000_000, p99Ms: 300, dau: 200_000_000, requestsPerUser: 9 },
     constraints: [
       'Playback starts within a couple of seconds anywhere in the world.',
       'Uploads are transcoded into several resolutions before going live.',
@@ -199,7 +199,7 @@ export const PROBLEMS = [
     title: 'Ride Matching',
     difficulty: 'Hard',
     summary: 'Match riders to nearby drivers in real time while drivers stream their location every few seconds.',
-    requirements: { readQps: 15000, writeQps: 40000, storageGb: 3000, p99Ms: 200, dau: 20_000_000, readsPerUser: 30 },
+    requirements: { readQps: 15000, writeQps: 40000, storageGb: 3000, p99Ms: 200, dau: 20_000_000, requestsPerUser: 80 },
     constraints: [
       'Drivers send a location update every 4 seconds.',
       'A rider must see nearby drivers within 200 ms.',
@@ -237,7 +237,7 @@ export const PROBLEMS = [
     title: 'Notification Hub',
     difficulty: 'Medium',
     summary: 'Every team in a company sends push, email and SMS through one service that handles retries and preferences.',
-    requirements: { readQps: 2000, writeQps: 20000, storageGb: 800, p99Ms: 120, dau: 80_000_000, readsPerUser: 1 },
+    requirements: { readQps: 2000, writeQps: 20000, storageGb: 800, p99Ms: 120, dau: 80_000_000, requestsPerUser: 8 },
     constraints: [
       'Accepting a send request is fast; delivery can lag by seconds.',
       'Third-party providers are slow and sometimes fail.',
@@ -274,7 +274,7 @@ export const PROBLEMS = [
     title: 'Flash-Sale Checkout',
     difficulty: 'Hard',
     summary: 'An online store runs limited-stock sales where demand spikes 50x for a few minutes.',
-    requirements: { readQps: 30000, writeQps: 3000, storageGb: 2000, p99Ms: 300, dau: 10_000_000, readsPerUser: 50 },
+    requirements: { readQps: 30000, writeQps: 3000, storageGb: 2000, p99Ms: 300, dau: 10_000_000, requestsPerUser: 95 },
     constraints: [
       'Never sell more units than exist.',
       'Payment and order records must be transactional.',
