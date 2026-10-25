@@ -1,6 +1,7 @@
 import { useDiagramStore } from '../../store/useDiagramStore';
 import { useSimStore } from '../../store/useSimStore';
 import { fieldsForKind, fieldDef } from '../../nodeDefs/fieldSchemas';
+import { NODE_TYPES } from '../../nodeDefs/nodeTypes';
 
 function Field({ fieldKey, value, onChange }) {
   const def = fieldDef(fieldKey);
@@ -63,12 +64,13 @@ export default function Inspector() {
 
   if (!node && !edge) {
     return (
-      <aside className="inspector">
-        <div className="panel-heading"><span className="eyebrow">Inspector</span></div>
-        <div className="inspector-empty">
-          Select a component or connection on the canvas to view and edit its behavior.
+      <div className="inspector-empty">
+        Select a component or connection on the canvas to view and edit its behavior.
+        <div className="shortcut-list">
+          <div><kbd>Tab</kbd> focus nodes · <kbd>Enter</kbd> select · arrows move</div>
+          <div><kbd>Del</kbd> delete · <kbd>Esc</kbd> deselect · <kbd>Space</kbd> run/pause</div>
         </div>
-      </aside>
+      </div>
     );
   }
 
@@ -76,9 +78,8 @@ export default function Inspector() {
     const edgeRuntime = runtimeEdges[edge.id];
     const partitioned = edgeRuntime?.partitioned;
     return (
-      <aside className="inspector">
-        <div className="panel-heading"><span className="eyebrow">Connection</span></div>
-        <div className="inspector-body">
+      <div className="inspector-body">
+          <div className="eyebrow small">Connection</div>
           <div className="inspector-title mono">{edge.id}</div>
           <label className="field">
             <span className="field__label">
@@ -101,8 +102,17 @@ export default function Inspector() {
             </div>
           </div>
           <button className="danger-btn" onClick={() => deleteEdge(edge.id)}>Delete connection</button>
-        </div>
-      </aside>
+      </div>
+    );
+  }
+
+  if (node.data.kind === 'note') {
+    return (
+      <div className="inspector-body">
+        <div className="eyebrow small">Sticky note</div>
+        <p className="dim">Edit the text directly on the canvas. Notes are saved and exported with the diagram but never simulated or scored.</p>
+        <button className="danger-btn" onClick={() => deleteNode(node.id)}>Delete note</button>
+      </div>
     );
   }
 
@@ -111,15 +121,13 @@ export default function Inspector() {
   const isDown = runtime?.status === 'down';
 
   return (
-    <aside className="inspector">
-      <div className="panel-heading"><span className="eyebrow">Inspector</span></div>
       <div className="inspector-body">
         <input
           className="inspector-title-input"
           value={node.data.label}
           onChange={(e) => renameNode(node.id, e.target.value)}
         />
-        <div className="inspector-kind mono">{node.data.kind}</div>
+        <div className="inspector-kind mono">{NODE_TYPES[node.data.kind]?.label || node.data.kind}</div>
 
         {runtime && (
           <div className="inspector-runtime">
@@ -155,6 +163,5 @@ export default function Inspector() {
 
         <button className="danger-btn" onClick={() => deleteNode(node.id)}>Delete component</button>
       </div>
-    </aside>
   );
 }
