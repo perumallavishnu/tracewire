@@ -606,7 +606,8 @@ export class SimulationEngine {
       nodes,
       edges,
       metrics: this._computeMetrics(),
-      history: this.history,
+      // copy: Recharts 3 deep-freezes chart data, which would freeze the engine's own array
+      history: this.history.slice(),
       eventLog: this.eventLog.slice(-40),
       activeEffects: this.activeEffects,
     };
