@@ -81,7 +81,7 @@ export default function FlowCanvas() {
         fitView
       >
         <Background variant={BackgroundVariant.Dots} gap={22} size={1} color="var(--grid-dot)" />
-        <Controls showInteractive={false} />
+        <Controls showInteractive={false} position="top-left" />
         <MiniMap pannable zoomable className="tw-minimap" nodeColor={(n) => (n.type === 'note' ? 'var(--note)' : 'var(--trace)')} />
       </ReactFlow>
     </div>

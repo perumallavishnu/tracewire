@@ -6,7 +6,8 @@ please keep changes focused and readable.
 ## Getting set up
 
 ```bash
-git clone https://github.com/<your-username>/tracewire.git
+# fork on GitHub first, then clone your fork
+git clone https://github.com/<your-github-username>/tracewire.git
 cd tracewire
 npm install
 npm run dev
@@ -38,14 +39,20 @@ detailed walkthrough and troubleshooting.
 - **No new heavy dependencies without discussion.** The project intentionally
   stays small (React, Vite, @xyflow/react, Zustand, Recharts). If a feature
   seems to need a new dependency, open an issue first.
-- **Simulation logic lives in `src/simulation/engine.js` only.** UI
-  components should read from the engine's snapshot, not duplicate
-  simulation math.
+- **Simulation logic lives in `src/simulation/`.** `engine.js` is the live,
+  tick-based simulation; `analyze.js` is the steady-state model used by
+  scoring and the capacity planner. Keep their flow rules in step (load
+  balancers split, caches answer hits, generic nodes fan out). UI components
+  read from these, they don't duplicate the math.
 - **New built-in component types** go in `src/nodeDefs/nodeTypes.js`
   (defaults) and `src/nodeDefs/fieldSchemas.js` (which fields the Inspector
-  exposes), then need a corresponding branch in
-  `SimulationEngine._processAtNode()` if their behavior isn't already
-  covered by the generic capacity/latency/failure/queue/cache logic.
+  exposes, only needed if the defaults don't fit). Set `behavior` to reuse
+  an existing engine path (`cache`, `queue`, `loadbalancer`, `ratelimiter`,
+  `circuitbreaker`), set `tags` so scoring knows its architectural role, and
+  add an entry to `src/nodeDefs/tradeoffs.js`. Only add a branch in
+  `SimulationEngine._processAtNode()` for genuinely new behavior.
+- **New practice problems** go in `src/problems/problems.js`. Ship a
+  reference design that scores 90+ against its own requirements.
 - **New chaos effects** should follow the existing pattern in
   `engine.js`: an `activeEffects` entry with a `type`, `targetId`, and
   `expiresAt`, applied in `_effectiveConfig()` and cleaned up in
@@ -65,7 +72,7 @@ Please include:
 - If possible, export your diagram (toolbar → Export) and attach the JSON
 
 Open bugs and feature requests as
-[GitHub Issues](https://github.com/<your-username>/tracewire/issues).
+[GitHub Issues](https://github.com/perumallavishnu/tracewire/issues).
 
 ## Code of conduct
 
