@@ -35,7 +35,7 @@ paid account.
 Clone the repository:
 
 ```bash
-git clone https://github.com/<your-username>/tracewire.git
+git clone https://github.com/perumallavishnu/tracewire.git
 cd tracewire
 ```
 
