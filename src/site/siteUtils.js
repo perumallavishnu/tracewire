@@ -29,11 +29,3 @@ export function useReveal() {
   }, []);
   return ref;
 }
-
-export const CREDITS = [
-  { file: 'switchboard-operator.jpg', title: 'Marine Field Telephone Switchboard Operator, Guadalcanal, circa 1942', by: 'Archives Branch, USMC History Division', licence: 'CC BY 2.0', url: 'https://commons.wikimedia.org/w/index.php?curid=109890737' },
-  { file: 'telephone-exchange.jpg', title: '1940s N935 telephone exchange', by: 'Rodhullandemu', licence: 'CC BY-SA 4.0', url: 'https://commons.wikimedia.org/w/index.php?curid=66686359' },
-  { file: 'arpanet-1977.png', title: 'Arpanet logical map, March 1977', by: 'ARPANET', licence: 'public domain', url: 'https://commons.wikimedia.org/wiki/File:Arpanet_logical_map,_march_1977.png' },
-  { file: 'server-racks.jpg', title: 'Wikimedia racks ULSFO 2013 06 06 02', by: 'Mutante', licence: 'CC BY-SA 3.0', url: 'https://commons.wikimedia.org/w/index.php?curid=26602336' },
-  { file: 'rack-cables.jpg', title: 'Rear of rack at NERSC data center, closeup', by: 'Derrick Coetzee', licence: 'CC0', url: 'https://commons.wikimedia.org/w/index.php?curid=17460421' },
-];
