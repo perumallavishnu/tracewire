@@ -1,22 +1,10 @@
-import { useEffect, useState } from 'react';
 import { LEVELS, COURSE_STATS } from '../course';
 import LiveDial from './LiveDial';
 import { SiteNav, Trace, TraceBullet } from './shared';
-import { CREDITS, useReveal } from './siteUtils';
+import { useReveal } from './siteUtils';
+import RackFigure from './figure/RackFigure';
+import BrokenToBuilt from './figure/BrokenToBuilt';
 import './site.css';
-
-const HERO_PICTURES = [
-  { src: 'landing/switchboard-operator.jpg', alt: 'A soldier with a headset plugs cables into a field telephone switchboard in a dug-out, 1942', caption: '1942. An operator routes every call by hand. Routing requests is still the job.' },
-  { src: 'landing/telephone-exchange.jpg', alt: 'A wooden 1940s telephone exchange with six line switches labelled ring, hold and night extension', caption: 'A 1940s exchange: six lines, and a hard limit on how many calls fit.' },
-  { src: 'landing/arpanet-1977.png', alt: 'Hand-drawn logical map of the ARPANET in March 1977, showing linked computers at universities', caption: 'ARPANET, March 1977. A few dozen machines, already a distributed system.' },
-  { src: 'landing/server-racks.jpg', alt: 'A row of server racks with blinking network equipment in a data centre', caption: 'Today: thousands of machines in one room, and any one can fail.' },
-];
-
-const STEPS = [
-  { name: 'Learn', text: `${COURSE_STATS.concepts} concepts in ${COURSE_STATS.subsections} short lessons, ordered from one request to global scale.` },
-  { name: 'Build', text: 'Drag 39 real components onto a canvas and wire them the way production systems are wired.' },
-  { name: 'Prove', text: 'Run live traffic, inject failures, and get a 100-point score with a fix for every miss.' },
-];
 
 const FAQ = [
   ['Is it free?', 'Yes. Tracewire is open source under the MIT licence. There is no account, no paywall and no server: everything runs in your browser.'],
@@ -37,40 +25,6 @@ const MOSAIC = [
   { size: 'small', name: 'Break it on purpose', line: 'Kill a node mid-run and watch the retries pile up.', ui: <div className="ui-button">Revive node</div> },
   { size: 'small', name: 'Interview on the clock', line: 'Six phases, from clarifying to the deep dive.', ui: <div className="ui-timer">4:12<span> / 15:00</span></div> },
 ];
-
-function HeroPictures() {
-  const [index, setIndex] = useState(0);
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
-    let timer = setInterval(() => !document.hidden && setIndex((i) => (i + 1) % HERO_PICTURES.length), 5600);
-    return () => clearInterval(timer);
-  }, []);
-  return (
-    <figure className="hero__pictures">
-      {HERO_PICTURES.map((p, i) => (
-        <img key={p.src} src={p.src} alt={i === index ? p.alt : ''} aria-hidden={i !== index} className={i === index ? 'is-current' : ''} width="1600" height="1200" />
-      ))}
-      <figcaption>{HERO_PICTURES[index].caption}</figcaption>
-    </figure>
-  );
-}
-
-// Disorder, compression, order: concepts scattered, pulled into one design, released as a working system.
-function ManyIntoOne() {
-  const squares = [];
-  let seed = 7;
-  const rand = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
-  for (let i = 0; i < 48; i++) squares.push({ x: 10 + rand() * 300, y: 20 + rand() * 300, tone: rand() > 0.5 ? 'a' : 'b' });
-  for (let i = 0; i < 48; i++) squares.push({ x: 360 + (i % 16) * 17, y: 147 + Math.floor(i / 16) * 17, tone: 'b' });
-  for (let i = 0; i < 48; i++) squares.push({ x: 700 + (i % 8) * 37, y: 40 + Math.floor(i / 8) * 46, tone: 'c' });
-  return (
-    <svg className="many" viewBox="0 0 1000 340" role="img" aria-label="Scattered squares pulled into a tight ribbon, then released as ordered rows">
-      {squares.map((s, i) => (
-        <rect key={i} x={s.x} y={s.y} width="13" height="13" className={`many__sq many__sq--${s.tone}`} style={{ '--i': i }} />
-      ))}
-    </svg>
-  );
-}
 
 export default function Landing() {
   const ref = useReveal();
@@ -95,7 +49,7 @@ export default function Landing() {
             </div>
           </div>
         </div>
-        <HeroPictures />
+        <div className="hero__figure"><RackFigure /></div>
       </section>
 
       <section className="show" id="dial">
@@ -114,18 +68,10 @@ export default function Landing() {
 
       <section className="steps">
         <div className="steps__head">
-          <h2 data-reveal>From notes to a working system</h2>
-          <p data-reveal>Reading about load balancers is easy. Knowing where yours breaks takes practice, so every lesson ends on the canvas.</p>
+          <h2 data-reveal>From a pile of servers to a system</h2>
+          <p data-reveal>Machines alone fall over. Four principles, applied in order, turn them into something that stays up: spread the load, cache the hot reads, replicate the data, queue the slow work.</p>
         </div>
-        <div data-reveal><ManyIntoOne /></div>
-        <div className="steps__cols">
-          {STEPS.map((s) => (
-            <div key={s.name} data-reveal>
-              <h3>{s.name}</h3>
-              <p>{s.text}</p>
-            </div>
-          ))}
-        </div>
+        <div data-reveal><BrokenToBuilt /></div>
       </section>
 
       <section className="stats">
@@ -157,9 +103,18 @@ export default function Landing() {
             </div>
           </div>
         ))}
-        <figure className="board__tile board__tile--photo" data-reveal>
-          <img src="landing/rack-cables.jpg" alt="The back of a data-centre rack, packed with network cables" loading="lazy" width="1200" height="1800" />
-        </figure>
+        <div className="board__tile board__tile--photo" data-reveal>
+          <div className="board__log" data-ui>
+            <p><span>6.8s</span> Node Redirect Service killed</p>
+            <p className="is-warn"><span>6.8s</span> Retrying request after "node is down" at Redirect Service</p>
+            <p className="is-warn"><span>6.9s</span> Retrying request after "node is down" at Redirect Service</p>
+            <p><span>9.1s</span> Node Redirect Service revived</p>
+          </div>
+          <div className="board__caption">
+            <h3>Every incident, logged</h3>
+            <p>The event feed records each failure, retry and recovery as it happens.</p>
+          </div>
+        </div>
       </section>
 
       <section className="menu" id="roadmap-overview">
@@ -234,10 +189,8 @@ export default function Landing() {
             <a href="https://github.com/perumallavishnu/tracewire/issues">Report a bug</a>
           </div>
           <div className="foot__credits">
-            <h3>Pictures</h3>
-            {CREDITS.map((c) => (
-              <p key={c.file}><a href={c.url}>{c.title}</a>, {c.by}, {c.licence}, via Wikimedia Commons. Shown in grayscale.</p>
-            ))}
+            <h3>Colophon</h3>
+            <p>Isometric figures drawn with <a href="https://github.com/wheresryan22/anatomy">anatomy</a> (MIT). Icons from <a href="https://lucide.dev">Lucide</a> (ISC). Type set in Space Grotesk and Inter.</p>
           </div>
         </div>
         <div className="foot__last">

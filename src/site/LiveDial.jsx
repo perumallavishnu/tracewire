@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { analyzeDesign } from '../simulation/analyze';
-import { defaultConfigFor } from '../nodeDefs/nodeTypes';
+import { buildDemoGraph as buildGraph } from './demoModel';
 import { formatQps } from '../utils/format';
 
 // The landing page's live thing: a five-box architecture run through the same
@@ -11,29 +11,6 @@ const SCENARIOS = [
   { id: 'nocache', label: 'No cache', traffic: 20000, cache: false, services: 5, dbs: 2 },
   { id: 'spike', label: 'Launch spike', traffic: 80000, cache: true, services: 5, dbs: 2 },
 ];
-
-const SERVICE = { ...defaultConfigFor('service'), baseLatencyMs: 15, jitterMs: 10 };
-
-function buildGraph({ cache, services, dbs }) {
-  const node = (id, kind, label, config) => ({ id, data: { kind, label, config } });
-  const nodes = [
-    node('gen', 'generator', 'Users', { rate: 1 }),
-    node('lb', 'loadbalancer', 'Load balancer', defaultConfigFor('loadbalancer')),
-    node('svc', 'service', 'App servers', { ...SERVICE, replicas: services }),
-    node('db', 'database', 'Database', { ...defaultConfigFor('database'), replicas: dbs }),
-  ];
-  const edges = [
-    { id: 'a', source: 'gen', target: 'lb', data: { latencyMs: 2 } },
-    { id: 'b', source: 'lb', target: 'svc', data: { latencyMs: 2 } },
-  ];
-  if (cache) {
-    nodes.push(node('cache', 'cache', 'Cache', { ...defaultConfigFor('cache'), cacheHitRate: 0.85, replicas: 2 }));
-    edges.push({ id: 'c', source: 'svc', target: 'cache', data: { latencyMs: 1 } }, { id: 'd', source: 'cache', target: 'db', data: { latencyMs: 2 } });
-  } else {
-    edges.push({ id: 'c', source: 'svc', target: 'db', data: { latencyMs: 2 } });
-  }
-  return { nodes, edges };
-}
 
 // log scale: slider 0..100 -> 500..200,000 req/s
 const MIN = 500;

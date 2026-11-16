@@ -46,8 +46,10 @@ on.
   translucent level zones, linked sections listing every lesson and concept,
   and what you can build after each zone (real products, simulator
   exercises, class designs). Scroll to zoom; click a section to open it.
-- **Landing page** (`#/`) with a live traffic dial that runs the real
-  scoring model: same 20,000 req/s, with and without a cache.
+- **Landing page** (`#/`) with an isometric server-rack figure (Fig 1) and a
+  live traffic dial, both running the real scoring model, plus an isometric
+  scene of broken machines becoming a working architecture through four
+  principles (load balance, cache, replicate, queue).
 - **39 built-in components** in six searchable categories:
   - *Traffic*: Traffic Generator, Client
   - *Networking*: DNS, CDN Edge, Origin Shield, Load Balancer (round robin /
@@ -298,15 +300,12 @@ Good first areas to contribute in:
 
 ---
 
-## Picture credits
+## Credits
 
-The landing page uses archival photographs from Wikimedia Commons, shown in
-grayscale: a 1942 USMC field switchboard operator (CC BY 2.0, Archives
-Branch, USMC History Division), a 1940s N935 telephone exchange (CC BY-SA
-4.0, Rodhullandemu), the ARPANET logical map of March 1977 (public domain),
-Wikimedia server racks (CC BY-SA 3.0, Mutante) and a NERSC rack closeup
-(CC0, Derrick Coetzee). Sources are listed in `public/landing/credits.json`
-and in the page footer.
+Isometric figures are drawn with the [anatomy](https://github.com/wheresryan22/anatomy)
+kit (MIT), vendored in `src/site/iso/`; rebuild the rack figure with
+`node scripts/build-rack-figure.mjs`. Component icons are from
+[Lucide](https://lucide.dev) (ISC).
 
 ---
 
