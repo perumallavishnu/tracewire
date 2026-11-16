@@ -10,17 +10,46 @@ function Stat({ label, value, accent }) {
   );
 }
 
-function MiniChart({ data, dataKey, color, unit }) {
+// Charts carry real axes: simulated seconds along the bottom, the metric with its unit up the side.
+// floor keeps an idle chart from collapsing to a flat 0–0 range.
+const AXIS_TICK = { fill: 'var(--text-muted)', fontSize: 10, fontFamily: 'var(--font-mono)' };
+
+function formatTick(value, unit) {
+  if (unit === '%') return `${Math.round(value)}%`;
+  const v = value >= 1000 ? `${(value / 1000).toFixed(1)}k` : `${Math.round(value)}`;
+  return `${v}${unit}`;
+}
+
+function MiniChart({ data, dataKey, color, unit, label, floor }) {
   return (
-    <ResponsiveContainer width="100%" height={70}>
-      <LineChart data={data} margin={{ top: 4, right: 6, bottom: 0, left: 0 }}>
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 0 }}>
         <CartesianGrid stroke="var(--grid-line)" vertical={false} />
-        <XAxis dataKey="t" hide />
-        <YAxis hide domain={[0, 'auto']} />
+        <XAxis
+          dataKey="t"
+          type="number"
+          domain={['dataMin', 'dataMax']}
+          tickFormatter={(v) => `${Math.round(v)}s`}
+          tick={AXIS_TICK}
+          tickLine={false}
+          axisLine={{ stroke: 'var(--border)' }}
+          minTickGap={28}
+          allowDataOverflow
+        />
+        <YAxis
+          width={46}
+          domain={[0, (max) => Math.max(floor, Math.ceil(max * 1.15))]}
+          tickFormatter={(v) => formatTick(v, unit)}
+          tick={AXIS_TICK}
+          tickLine={false}
+          axisLine={false}
+          tickCount={4}
+          allowDecimals={false}
+        />
         <Tooltip
           contentStyle={{ background: 'var(--panel)', border: '1px solid var(--border)', fontSize: 11 }}
-          labelFormatter={() => ''}
-          formatter={(v) => [`${Math.round(v * 10) / 10}${unit}`, dataKey]}
+          labelFormatter={(t) => `t = ${Number(t).toFixed(1)} s`}
+          formatter={(v) => [`${Math.round(v * 10) / 10} ${unit.trim()}`, label]}
         />
         <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={false} isAnimationActive={false} />
       </LineChart>
@@ -43,16 +72,16 @@ export default function MetricsDock() {
       </div>
       <div className="metrics-dock__charts">
         <div className="chart-block">
-          <div className="chart-block__title">Throughput</div>
-          <MiniChart data={history} dataKey="throughput" color="var(--accent-signal)" unit=" rps" />
+          <div className="chart-block__title">Throughput <span>req/s over sim time</span></div>
+          <div className="chart-block__plot"><MiniChart data={history} dataKey="throughput" color="var(--accent-signal)" unit="" label="throughput (req/s)" floor={10} /></div>
         </div>
         <div className="chart-block">
-          <div className="chart-block__title">Error rate</div>
-          <MiniChart data={history} dataKey="errorRate" color="var(--accent-error)" unit="%" />
+          <div className="chart-block__title">Error rate <span>% of requests failed</span></div>
+          <div className="chart-block__plot"><MiniChart data={history} dataKey="errorRate" color="var(--accent-error)" unit="%" label="error rate" floor={5} /></div>
         </div>
         <div className="chart-block">
-          <div className="chart-block__title">p95 latency</div>
-          <MiniChart data={history} dataKey="p95" color="var(--accent-warn)" unit="ms" />
+          <div className="chart-block__title">p95 latency <span>milliseconds</span></div>
+          <div className="chart-block__plot"><MiniChart data={history} dataKey="p95" color="var(--accent-warn)" unit="ms" label="p95 latency" floor={50} /></div>
         </div>
       </div>
       <div className="metrics-dock__log">

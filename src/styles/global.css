@@ -1,0 +1,21 @@
+/* Shared across every route: scrollbars in the app's palette instead of the OS default white. */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2b343c transparent;
+}
+*:hover { scrollbar-color: #3a4652 transparent; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: #2b343c;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: #4fd1c5; background-clip: padding-box; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-button { display: none; height: 0; width: 0; }
+
+html { background: #0b0e11; color-scheme: dark; }

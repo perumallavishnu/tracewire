@@ -5,6 +5,19 @@ import { scoreDesign } from '../scoring/score';
 import { useDiagramStore } from './useDiagramStore';
 
 const PROBLEM_KEY = 'tracewire:problem:v1';
+const PALETTE_KEY = 'tracewire:palette-width:v1';
+export const PALETTE_MIN = 200;
+export const PALETTE_MAX = 480;
+export const PALETTE_DEFAULT = 250;
+
+function loadPaletteWidth() {
+  try {
+    const w = Number(localStorage.getItem(PALETTE_KEY));
+    return w >= PALETTE_MIN && w <= PALETTE_MAX ? w : PALETTE_DEFAULT;
+  } catch (e) {
+    return PALETTE_DEFAULT;
+  }
+}
 
 function loadProblemId() {
   try {
@@ -20,11 +33,22 @@ export const useUiStore = create((set, get) => ({
   activeProblemId: loadProblemId(),
   score: null,
   learnOpen: false,
+  paletteWidth: loadPaletteWidth(),
   interview: { active: false, phase: 0, elapsedSec: 0, phaseStartSec: 0, paused: false },
 
   setLeftTab(leftTab) { set({ leftTab }); },
   setRightTab(rightTab) { set({ rightTab }); },
   setLearnOpen(learnOpen) { set({ learnOpen }); },
+
+  setPaletteWidth(width) {
+    const paletteWidth = Math.round(Math.min(PALETTE_MAX, Math.max(PALETTE_MIN, width)));
+    set({ paletteWidth });
+    try {
+      localStorage.setItem(PALETTE_KEY, String(paletteWidth));
+    } catch (e) {
+      // storage unavailable — the width just won't survive a refresh
+    }
+  },
 
   setActiveProblem(id) {
     set({ activeProblemId: id, score: null });
