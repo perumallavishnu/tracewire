@@ -12,9 +12,10 @@ It's built for learning and teaching system design, prototyping
 architectures, and stress-testing "what happens if X goes down" scenarios
 without touching real infrastructure.
 
-It also works as an interview trainer: pick a practice problem, design
-against its requirements, size it with the capacity planner, and get a
-scored breakdown with concrete fixes.
+It also works as a course and interview trainer: a landing page with a live
+traffic dial, a zoomable roadmap from beginner to advanced, 60 lessons, and
+practice problems you design, size with the capacity planner and get scored
+on.
 
 ![Tracewire interface overview](docs/screenshots/interface-overview.png)
 
@@ -37,6 +38,16 @@ scored breakdown with concrete fixes.
 
 - **Visual architecture canvas** — drag-and-drop components, connect them
   with a click-and-drag, pan/zoom, minimap.
+- **System design course** — 19 sections, 60 lessons and 255 named concepts
+  across beginner, intermediate and advanced zones (`#/learn`), each lesson
+  page laid out with a section tree, theory, concepts to learn, practice
+  links into the simulator and next/previous navigation.
+- **Zoomable roadmap** (`#/roadmap`) — the whole course as one canvas:
+  translucent level zones, linked sections listing every lesson and concept,
+  and what you can build after each zone (real products, simulator
+  exercises, class designs). Scroll to zoom; click a section to open it.
+- **Landing page** (`#/`) with a live traffic dial that runs the real
+  scoring model: same 20,000 req/s, with and without a cache.
 - **39 built-in components** in six searchable categories:
   - *Traffic*: Traffic Generator, Client
   - *Networking*: DNS, CDN Edge, Origin Shield, Load Balancer (round robin /
@@ -235,6 +246,9 @@ tracewire/
 │   │                            p99, single points of failure, replica sizing
 │   ├── scoring/score.js         100-point design rubric built on analyze.js
 │   ├── problems/                Practice problems and their reference designs
+│   ├── course/                  Course content: levels, sections, lessons, concepts, projects
+│   ├── site/                    Landing page, roadmap canvas, lesson pages
+│   ├── router.js                Hash routes: #/, #/roadmap, #/learn/:section, #/sim
 │   ├── interview/phases.js      Mock-interview phases and prompts
 │   ├── learn/concepts.js        Learn drawer content
 │   ├── store/                   Zustand stores (diagram graph, sim runtime, UI)
@@ -281,6 +295,18 @@ Good first areas to contribute in:
 - **Questions / general discussion**: use
   [GitHub Discussions](https://github.com/perumallavishnu/tracewire/discussions)
   if enabled on the repo, or open an issue tagged `question`.
+
+---
+
+## Picture credits
+
+The landing page uses archival photographs from Wikimedia Commons, shown in
+grayscale: a 1942 USMC field switchboard operator (CC BY 2.0, Archives
+Branch, USMC History Division), a 1940s N935 telephone exchange (CC BY-SA
+4.0, Rodhullandemu), the ARPANET logical map of March 1977 (public domain),
+Wikimedia server racks (CC BY-SA 3.0, Mutante) and a NERSC rack closeup
+(CC0, Derrick Coetzee). Sources are listed in `public/landing/credits.json`
+and in the page footer.
 
 ---
 
