@@ -56,7 +56,7 @@ html, body, #root {
 
 .app-body {
   display: grid;
-  grid-template-columns: 250px 1fr 310px;
+  grid-template-columns: var(--palette-w, 250px) 1fr 310px;
   min-height: 0;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
@@ -146,6 +146,7 @@ button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select
 /* ---------- Palette ---------- */
 
 .palette {
+  position: relative;
   background: var(--panel);
   border-right: 1px solid var(--border);
   display: flex;
@@ -184,6 +185,20 @@ button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select
   cursor: grab;
 }
 .palette-item:hover { border-color: var(--accent-signal); }
+.palette-resize {
+  position: absolute; top: 0; right: -4px; bottom: 0; width: 8px; z-index: 6;
+  cursor: col-resize; touch-action: none;
+}
+.palette-resize::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 3px; width: 2px;
+  background: transparent; transition: background-color 120ms;
+}
+.palette-resize:hover::after, .palette-resize:focus-visible::after, .palette-resize.is-dragging::after { background: var(--accent-signal); }
+.palette-resize:focus-visible { outline: none; }
+.palette-item__glyph.has-icon, .schematic-node__glyph.has-icon {
+  display: inline-flex; align-items: center; justify-content: center; padding: 4px;
+}
+.schematic-node__glyph.has-icon { padding: 3px; }
 .palette-item__glyph {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -439,7 +454,10 @@ kbd {
 .stat__value { font-size: 18px; font-weight: 500; }
 .stat__label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
 
-.metrics-dock__charts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 14px; border-right: 1px solid var(--border); }
+.metrics-dock__charts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 0 14px; border-right: 1px solid var(--border); min-height: 0; }
+.chart-block { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.chart-block__plot { flex: 1; min-height: 0; }
+.chart-block__title span { text-transform: none; letter-spacing: 0; opacity: 0.7; margin-left: 6px; }
 .chart-block__title { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
 
 .metrics-dock__log { padding-left: 14px; overflow-y: auto; }

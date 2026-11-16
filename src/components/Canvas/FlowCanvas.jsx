@@ -82,7 +82,7 @@ export default function FlowCanvas() {
       >
         <Background variant={BackgroundVariant.Dots} gap={22} size={1} color="var(--grid-dot)" />
         <Controls showInteractive={false} position="top-left" />
-        <MiniMap pannable zoomable className="tw-minimap" nodeColor={(n) => (n.type === 'note' ? 'var(--note)' : 'var(--trace)')} />
+        <MiniMap pannable zoomable className="tw-minimap" nodeColor={(n) => (n.type === 'note' ? '#e8c96b' : '#3a4652')} maskColor="rgba(11, 14, 17, 0.72)" maskStrokeColor="#4fd1c5" maskStrokeWidth={1} />
       </ReactFlow>
     </div>
   );

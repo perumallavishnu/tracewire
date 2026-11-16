@@ -78,13 +78,14 @@ export default function SimulatorApp({ problemId }) {
 
   useSimulationLoop();
   useGlobalShortcuts();
+  const paletteWidth = useUiStore((s) => s.paletteWidth);
 
   return (
     <div className="app-shell">
       <Toolbar />
       <InterviewBar />
       <ReactFlowProvider>
-        <div className="app-body">
+        <div className="app-body" style={{ '--palette-w': `${paletteWidth}px` }}>
           <Palette onOpenBuilder={() => setBuilderOpen(true)} />
           <div className="canvas-column">
             <FlowCanvas />
