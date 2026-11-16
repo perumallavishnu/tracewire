@@ -56,11 +56,15 @@ export default function Toolbar() {
 
   return (
     <header className="toolbar">
-      <div className="toolbar__brand">
+      <a className="toolbar__brand" href="#/" title="Back to the Tracewire home page">
         <span className="toolbar__logo">◈</span>
         <span className="toolbar__title">Tracewire</span>
         <span className="toolbar__subtitle">system design simulator</span>
-      </div>
+      </a>
+      <nav className="toolbar__site-links" aria-label="Course">
+        <a href="#/roadmap">Roadmap</a>
+        <a href="#/learn">Lessons</a>
+      </nav>
 
       <div className="toolbar__controls">
         <button className={`play-btn${running ? ' is-running' : ''}`} onClick={toggle}>
