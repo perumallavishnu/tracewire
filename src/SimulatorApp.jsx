@@ -77,7 +77,7 @@ export default function SimulatorApp({ problemId }) {
     return () => clearTimeout(t);
   }, []);
 
-  // #/sim?problem=<id> (links from lessons and the roadmap) opens that problem's brief
+  // /sim?problem=<id> (links from lessons and the roadmap) opens that problem's brief
   useEffect(() => {
     if (!problemId) return;
     const ui = useUiStore.getState();

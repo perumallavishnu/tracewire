@@ -14,10 +14,10 @@ export default function NotFound({ path }) {
             Nothing is listening at <code>{path || 'this address'}</code>. It may have moved, or the link may be mistyped.
           </p>
           <div className="nf__actions">
-            <a className="btn" href="#/">Back to the start</a>
-            <a href="#/roadmap">Open the roadmap</a>
-            <a href="#/learn">Browse lessons</a>
-            <a href="#/sim">Open the simulator</a>
+            <a className="btn" href="/">Back to the start</a>
+            <a href="/roadmap">Open the roadmap</a>
+            <a href="/learn/how-the-web-works">Browse lessons</a>
+            <a href="/sim">Open the simulator</a>
           </div>
         </div>
         <div className="nf__art" aria-hidden="true">

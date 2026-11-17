@@ -13,7 +13,7 @@ every section, eight practice problems with reference designs, and 45
 projects to build. Everything runs in your browser. No account, no server,
 no paywall.
 
-**Live: [tracewire-nine.vercel.app](https://tracewire-nine.vercel.app)** · Version 1.0.1 · [Changelog](CHANGELOG.md) · MIT licence
+**Live: [tracewire-nine.vercel.app](https://tracewire-nine.vercel.app)** · Version 1.1.0 · [Changelog](CHANGELOG.md) · MIT licence
 
 ![Tracewire landing page](docs/screenshots/interface-overview.png)
 
@@ -162,8 +162,12 @@ The app is fully static, and `vercel.json` already configures the build.
 2. Or from a terminal: `npx vercel login`, then `npx vercel --prod` in the
    project folder.
 
-Routes live in the URL hash (`#/roadmap`, `#/learn/caching-101`, `#/sim`),
-so any static host works the same way; unknown paths show the 404 page.
+Every page has a real URL (`/roadmap`, `/learn/caching-101`, `/sim`) and is
+prerendered to static HTML by `scripts/prerender.mjs` during `npm run build`,
+along with `sitemap.xml`, `robots.txt`, `llms.txt` and `llms-full.txt`.
+`vercel.json` serves those files with clean URLs and returns a real 404 for
+unknown paths. On other static hosts, serve `dist/` with directory indexes and
+`404.html` as the not-found page.
 
 ---
 

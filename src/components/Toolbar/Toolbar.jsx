@@ -59,14 +59,14 @@ export default function Toolbar() {
 
   return (
     <header className="toolbar">
-      <a className="toolbar__brand" href="#/" title="Back to the Tracewire home page">
+      <a className="toolbar__brand" href="/" title="Back to the Tracewire home page">
         <Logo size={24} withWord={false} />
         <span className="toolbar__title">Tracewire</span>
         <span className="toolbar__subtitle">system design simulator</span>
       </a>
       <nav className="toolbar__site-links" aria-label="Course">
-        <a href="#/roadmap">Roadmap</a>
-        <a href="#/learn">Lessons</a>
+        <a href="/roadmap">Roadmap</a>
+        <a href="/learn/how-the-web-works">Lessons</a>
       </nav>
 
       <div className="toolbar__controls">

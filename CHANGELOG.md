@@ -2,6 +2,18 @@
 
 All notable changes to Tracewire. Versions follow [semantic versioning](https://semver.org).
 
+## 1.1.0 — 2026-11-17
+
+Search and AI-search visibility.
+
+### Added
+- Real URLs for every page (`/roadmap`, `/learn/caching-101`, `/sim`) on the History API. Old `#/...` links from 1.0 redirect to the matching path.
+- Build-time prerendering: every page ships as static HTML with its full content, so search engines and AI assistants that do not run JavaScript can read it.
+- Unique title, description and canonical URL per page, Open Graph and Twitter cards, and a 1200x630 social image.
+- Structured data (JSON-LD): Organization, WebSite, Course with syllabus, FAQPage, WebApplication, LearningResource for every lesson, BreadcrumbList and ItemList.
+- `sitemap.xml`, `robots.txt` (search and AI-search crawlers allowed), `llms.txt` and `llms-full.txt` (the whole course as plain text).
+- A real 404 status for unknown pages, security headers, and visible "Updated" dates on lessons.
+
 ## 1.0.1 — 2026-11-17
 
 Responsive and spacing fixes, audited at 1440, 768 and 390 px on every page (landing, lessons, roadmap, 404, simulator): no overlapping text, no sideways overflow, tap targets of at least 24 px on phones.
