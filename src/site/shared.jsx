@@ -35,20 +35,20 @@ export function TraceBullet({ tone = 'signal' }) {
 
 export function SiteNav({ current }) {
   const links = [
-    ['roadmap', 'Roadmap', '#/roadmap'],
-    ['learn', 'Lessons', '#/learn'],
-    ['sim', 'Simulator', '#/sim'],
+    ['roadmap', 'Roadmap', '/roadmap'],
+    ['learn', 'Lessons', '/learn/how-the-web-works'],
+    ['sim', 'Simulator', '/sim'],
   ];
   return (
     <header className="site-nav">
-      <a className="site-nav__mark" href="#/" aria-label="Tracewire home"><Logo size={30} /></a>
+      <a className="site-nav__mark" href="/" aria-label="Tracewire home"><Logo size={30} /></a>
       <nav aria-label="Main">
         {links.map(([id, label, to]) => (
           <a key={id} href={to} aria-current={current === id ? 'page' : undefined}>{label}</a>
         ))}
         <a href="https://github.com/perumallavishnu/tracewire" rel="noreferrer">GitHub</a>
       </nav>
-      <a className="btn btn--small" href="#/roadmap">Start learning</a>
+      <a className="btn btn--small" href="/roadmap">Start learning</a>
     </header>
   );
 }

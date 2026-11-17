@@ -117,6 +117,12 @@
 
 .hero__figure { position: sticky; top: 12px; height: calc(100svh - 80px); min-height: 620px; }
 
+/* placeholders while an interactive figure's code loads (same footprint, so nothing shifts) */
+.figure-wait { background: var(--field); }
+.figure-wait--rack { height: 100%; min-height: 620px; }
+.figure-wait--dial { min-height: 640px; }
+.figure-wait--bb { aspect-ratio: 1200 / 460; }
+
 /* ---------- showcase: the dial ---------- */
 
 .show { padding: var(--section) var(--gutter) 0; }
@@ -212,7 +218,7 @@
 .dial__readout div { background: var(--ground); padding: 16px; display: flex; flex-direction: column; gap: 2px; }
 .dial__readout dt { font-size: 14px; color: var(--muted); }
 .dial__readout dd { margin: 2px 0 0; font-family: var(--display); font-size: 30px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; transition: color 300ms; }
-.dial__readout span { font-size: 14px; color: var(--muted); }
+.dial__readout div dd.dial__note-dd { margin: 0; font-family: var(--text); font-size: 14px; font-weight: 400; letter-spacing: 0; color: var(--muted); }
 .dial__readout .is-signal dd { color: var(--accent); }
 .dial__readout .is-warn dd { color: var(--amber); }
 .dial__readout .is-error dd { color: #ff8a8d; }

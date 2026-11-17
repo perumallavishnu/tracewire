@@ -1,25 +1,17 @@
+import { lazy, Suspense } from 'react';
 import { LEVELS, COURSE_STATS } from '../course';
-import LiveDial from './LiveDial';
 import { SiteNav, Trace, TraceBullet } from './shared';
 import { useReveal } from './siteUtils';
 import Accordion from './Accordion';
+import { FAQ } from './faqData';
 import { ComingNext, LearningPaths } from './Paths';
 import CountUp from './CountUp';
 import { EventLog, InterviewTimer, KillRevive } from './BoardLive';
-import RackFigure from './figure/RackFigure';
-import BrokenToBuilt from './figure/BrokenToBuilt';
+// the interactive figures load after the text has painted; placeholders keep the layout still
+const RackFigure = lazy(() => import('./figure/RackFigure'));
+const LiveDial = lazy(() => import('./LiveDial'));
+const BrokenToBuilt = lazy(() => import('./figure/BrokenToBuilt'));
 import './site.css';
-
-const FAQ = [
-  ['Is it free?', 'Yes. Tracewire is open source under the MIT licence. There is no account, no paywall and no server: everything runs in your browser.'],
-  ['Who is it for?', 'Developers who want to understand how large systems are built, students preparing for system design interviews, and teachers who want a live whiteboard that pushes back.'],
-  ['Do I need to know a lot already?', 'No. The beginner zone starts with what happens when you type a web address. If you can read a little code, you can follow every lesson.'],
-  ['How is a design scored?', 'The scorer tests your design at the problem’s full peak load with a steady-state model: capacity per replica from Little’s law, queueing delay, critical-path p99 and single points of failure. It grades requirements, scalability, availability, latency and cost, 20 points each, and tells you how to fix every miss.'],
-  ['Can the simulator really handle 100,000 requests a second?', 'The live run animates traffic at the rate a browser can draw, a few hundred requests a second. Scoring and the capacity planner calculate behaviour at full production scale instantly, using the same flow rules.'],
-  ['Does it help with interviews?', 'Practice interview mode runs six timed phases, from clarifying requirements to the deep dive, and eight problems ship with reference designs to compare against once you have tried your own.'],
-  ['What about low-level design?', 'Each zone lists class-design exercises such as a parking lot, an LRU cache or a saga orchestrator, and the intermediate zone has a full section on object modelling and design patterns.'],
-  ['Can I contribute?', 'Please do. New problems, lessons and components are welcome on GitHub; the contributing guide explains how each is structured.'],
-];
 
 const MOSAIC = [
   { size: 'score', name: 'Scored at full load', line: 'The link shortener reference design: p99 61 ms against a 100 ms target.', ui: <div className="ui-score"><b><CountUp to={98} duration={1600} /></b><span>/100</span></div> },
@@ -44,16 +36,16 @@ export default function Landing() {
           <div className="hero__text">
             <h1 data-reveal>Design systems, then break them</h1>
             <p className="hero__lede" data-reveal>
-              A free course from your first request to global scale, and a simulator where every design you draw meets real load, real failures and a 100-point score.
+              A free system design course from your first request to global scale, covering high-level and low-level design, with a simulator where every design you draw meets real load, real failures and a 100-point score.
             </p>
             <div className="hero__actions" data-reveal>
-              <a className="btn" href="#/roadmap">Start the roadmap</a>
-              <a href="#/sim">Open the simulator</a>
-              <a href="#/learn/how-the-web-works">Read lesson one</a>
+              <a className="btn" href="/roadmap">Start the roadmap</a>
+              <a href="/sim">Open the simulator</a>
+              <a href="/learn/how-the-web-works">Read lesson one</a>
             </div>
           </div>
         </div>
-        <div className="hero__figure"><RackFigure /></div>
+        <div className="hero__figure"><Suspense fallback={<div className="figure-wait figure-wait--rack" />}><RackFigure /></Suspense></div>
       </section>
 
       <section className="show" id="dial">
@@ -63,10 +55,10 @@ export default function Landing() {
             With an 85% cache the database sees about 3,000 requests a second. Remove the cache and it gets nearly 20,000, and two thirds of them fail. Move the dial and see for yourself.
           </p>
         </div>
-        <div data-reveal><LiveDial /></div>
+        <div data-reveal><Suspense fallback={<div className="figure-wait figure-wait--dial" />}><LiveDial /></Suspense></div>
         <div className="show__actions" data-reveal>
-          <a className="cell cell--ink" href="#/sim?problem=link-shortener">Build it in the simulator</a>
-          <a className="cell" href="#/learn/caching-101">Read the caching lesson</a>
+          <a className="cell cell--ink" href="/sim?problem=link-shortener">Build it in the simulator</a>
+          <a className="cell" href="/learn/caching-101">Read the caching lesson</a>
         </div>
       </section>
 
@@ -75,7 +67,7 @@ export default function Landing() {
           <h2 data-reveal>From a pile of servers to a system</h2>
           <p data-reveal>Machines alone fall over. Four principles, applied in order, turn them into something that stays up: spread the load, cache the hot reads, replicate the data, queue the slow work.</p>
         </div>
-        <div data-reveal><BrokenToBuilt /></div>
+        <div data-reveal><Suspense fallback={<div className="figure-wait figure-wait--bb" />}><BrokenToBuilt /></Suspense></div>
       </section>
 
       <section className="stats">
@@ -120,7 +112,7 @@ export default function Landing() {
         <div className="menu__intro">
           <h2 data-reveal>The roadmap, zone by zone</h2>
           <p data-reveal>Each zone ends with what you can now build: real products, simulator exercises and class designs.</p>
-          <a className="btn" href="#/roadmap" data-reveal>Open the zoomable roadmap</a>
+          <a className="btn" href="/roadmap" data-reveal>Open the zoomable roadmap</a>
         </div>
         {levels.map((level) => (
           <div key={level.id} className={`menu__level menu__level--${level.tone}`}>
@@ -132,7 +124,7 @@ export default function Landing() {
               {level.sections.map((s) => (
                 <li key={s.id} data-reveal>
                   <TraceBullet tone={level.tone} />
-                  <a href={`#/learn/${s.id}`}>
+                  <a href={`/learn/${s.id}`}>
                     <span className="menu__name">{s.title}<span className="menu__count">{s.subsections.length} lessons</span></span>
                     <span className="menu__desc">{s.summary}</span>
                   </a>
@@ -161,12 +153,12 @@ export default function Landing() {
           <h2 data-reveal>Start with one request</h2>
           <p data-reveal>Lesson one follows a single request from your browser to a server and back. By the last zone you will be sizing systems for a whole planet.</p>
           <p className="close__fact" data-reveal>Free, open source, runs in your browser.</p>
-          <a className="btn" href="#/learn/how-the-web-works" data-reveal>Begin lesson one</a>
+          <a className="btn" href="/learn/how-the-web-works" data-reveal>Begin lesson one</a>
         </div>
       </section>
 
       <footer className="foot">
-        <div className="foot__mark" aria-label="Tracewire">
+        <div className="foot__mark" role="img" aria-label="Tracewire">
           {'TRACEWIRE'.split('').map((ch, i) => (
             <span key={i} style={{ height: `${[100, 72, 88, 64, 94, 78, 60, 86, 70][i]}%` }} aria-hidden="true">{ch}</span>
           ))}
@@ -174,9 +166,9 @@ export default function Landing() {
         <div className="foot__cols">
           <div>
             <h3>Learn</h3>
-            <a href="#/roadmap">Roadmap</a>
-            <a href="#/learn">Lessons</a>
-            <a href="#/sim">Simulator</a>
+            <a href="/roadmap">Roadmap</a>
+            <a href="/learn/how-the-web-works">Lessons</a>
+            <a href="/sim">Simulator</a>
           </div>
           <div>
             <h3>Project</h3>
