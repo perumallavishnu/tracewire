@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { LEVELS, SECTIONS, sectionById, levelById } from '../course';
 import { problemById } from '../problems/problems';
+import { EXAMPLES } from '../course/examples';
 import { SiteNav, TraceBullet } from './shared';
 import './site.css';
 import './lesson.css';
@@ -119,6 +120,20 @@ export default function Lesson({ sectionId, subsectionId }) {
             </section>
           ))}
 
+          {EXAMPLES[section.id] && (
+            <section className="ls-example" id="worked-example">
+              <h2>Worked example: {EXAMPLES[section.id].title}</h2>
+              <p className="ls-example__scenario">{EXAMPLES[section.id].scenario}</p>
+              <ol className="ls-example__steps">
+                {EXAMPLES[section.id].steps.map((step) => <li key={step.slice(0, 32)}>{step}</li>)}
+              </ol>
+              {EXAMPLES[section.id].code && (
+                <pre className="ls-example__code"><code>{EXAMPLES[section.id].code}</code></pre>
+              )}
+              <p className="ls-example__takeaway"><strong>Takeaway.</strong> {EXAMPLES[section.id].takeaway}</p>
+            </section>
+          )}
+
           <section className="ls-practice">
             <h2>Practise it</h2>
             <p>Open the simulator and build what you just read. These problems use the ideas from the {level.name.toLowerCase()} zone:</p>
@@ -161,6 +176,9 @@ export default function Lesson({ sectionId, subsectionId }) {
                 <a href={`#/learn/${section.id}/${sub.id}`} aria-current={active === sub.id ? 'true' : undefined}>{sub.title}</a>
               </li>
             ))}
+            {EXAMPLES[section.id] && (
+              <li><a href={`#/learn/${section.id}/worked-example`}>Worked example</a></li>
+            )}
           </ul>
           <a className="btn btn--small ls-toc__sim" href="#/sim">Open the simulator</a>
         </aside>

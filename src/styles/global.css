@@ -19,3 +19,42 @@
 ::-webkit-scrollbar-button { display: none; height: 0; width: 0; }
 
 html { background: #0b0e11; color-scheme: dark; }
+
+/* ---------- logo ---------- */
+.tw-logo { display: inline-flex; align-items: center; gap: 10px; }
+.tw-logo svg { display: block; flex-shrink: 0; }
+.tw-logo__word { font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: 20px; letter-spacing: -0.02em; color: #e6edf3; }
+.tw-logo__pulse { animation: tw-logo-pulse 3.2s ease-in-out infinite; }
+@keyframes tw-logo-pulse { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+a:hover > .tw-logo .tw-logo__pulse { animation-duration: 1.2s; }
+
+/* ---------- loading skeletons ---------- */
+.sk-root { min-height: 100vh; background: #0b0e11; padding: 12px; font-family: 'Inter', system-ui, sans-serif; }
+.sk { display: block; background: #171c22; position: relative; overflow: hidden; flex-shrink: 0; }
+.sk::after {
+  content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(230, 237, 243, 0.05), transparent);
+  animation: sk-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes sk-shimmer { to { transform: translateX(100%); } }
+.sk-grow { flex: 1; }
+.sk-nav { display: flex; align-items: center; gap: 24px; padding: 8px 12px 28px; }
+.sk-sim { display: flex; flex-direction: column; gap: 12px; height: calc(100vh - 24px); }
+.sk-sim__bar { display: flex; align-items: center; gap: 14px; }
+.sk-sim__body { flex: 1; display: grid; grid-template-columns: 250px 1fr 310px; gap: 12px; min-height: 0; }
+.sk-sim__side { display: flex; flex-direction: column; gap: 10px; background: #12161b; padding: 14px; }
+.sk-sim__canvas { background: #0f1317; display: flex; flex-direction: column; justify-content: center; gap: 40px; padding: 40px; }
+.sk-sim__dock { display: flex; gap: 12px; }
+.sk-lesson { display: grid; grid-template-columns: 280px minmax(0, 760px) 240px; justify-content: space-between; gap: 48px; padding: 0 12px; }
+.sk-col { display: flex; flex-direction: column; gap: 14px; }
+.sk-col--main { gap: 16px; }
+.sk-roadmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; padding: 0 12px; }
+.sk-zone { background: #12161b; padding: 28px; display: flex; flex-direction: column; gap: 24px; }
+.sk-zone__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 860px) {
+  .sk-sim__body, .sk-lesson, .sk-roadmap { grid-template-columns: 1fr; }
+  .sk-sim__side:last-child, .sk-lesson .sk-col:first-child, .sk-lesson .sk-col:last-child { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk::after, .tw-logo__pulse { animation: none; }
+}
