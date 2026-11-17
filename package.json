@@ -3,6 +3,7 @@
   "description": "A free, open-source, self-hosted system design simulator — build architectures, run live traffic, and inject chaos.",
   "version": "1.0.1",
   "license": "MIT",
+  "homepage": "https://tracewire-nine.vercel.app",
   "repository": {
     "type": "git",
     "url": "https://github.com/perumallavishnu/tracewire.git"
