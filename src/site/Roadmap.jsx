@@ -123,7 +123,7 @@ const SectionNode = memo(function SectionNode({ data }) {
       <Handle id="sb" type="source" position={Position.Bottom} className="rm-handle" isConnectable={false} />
       <Handle id="sr" type="source" position={Position.Right} className="rm-handle" isConnectable={false} />
       <Handle id="sl" type="source" position={Position.Left} className="rm-handle" isConnectable={false} />
-      <a className="rm-section__title nodrag" href={`#/learn/${section.id}`} onClick={(e) => e.stopPropagation()}>
+      <a className="rm-section__title nodrag" href={`/learn/${section.id}`} onClick={(e) => e.stopPropagation()}>
         {section.title}
       </a>
       {compact ? (
@@ -134,7 +134,7 @@ const SectionNode = memo(function SectionNode({ data }) {
           <ul className="rm-subs">
             {section.subsections.map((sub) => (
               <li key={sub.id}>
-                <a className="nodrag" href={`#/learn/${section.id}/${sub.id}`} onClick={(e) => e.stopPropagation()}>{sub.title}</a>
+                <a className="nodrag" href={`/learn/${section.id}/${sub.id}`} onClick={(e) => e.stopPropagation()}>{sub.title}</a>
                 <ul>
                   {sub.concepts.map((c) => <li key={c}>{c}</li>)}
                 </ul>
@@ -175,7 +175,7 @@ const ProjectsNode = memo(function ProjectsNode({ data }) {
               <li key={item.name}>
                 <span>{item.name}</span>
                 <span className="rm-like">like {item.like}</span>
-                {item.problemId && <a className="nodrag" href={`#/sim?problem=${item.problemId}`}>Design it in the simulator</a>}
+                {item.problemId && <a className="nodrag" href={`/sim?problem=${item.problemId}`}>Design it in the simulator</a>}
               </li>
             )}
           />
@@ -185,7 +185,7 @@ const ProjectsNode = memo(function ProjectsNode({ data }) {
             render={(item) => (
               <li key={item.name}>
                 <span>{item.name}</span>
-                <a className="nodrag" href={item.problemId ? `#/sim?problem=${item.problemId}` : '#/sim'}>
+                <a className="nodrag" href={item.problemId ? `/sim?problem=${item.problemId}` : '/sim'}>
                   {item.problemId ? 'Open the problem' : 'Free build'}
                 </a>
               </li>

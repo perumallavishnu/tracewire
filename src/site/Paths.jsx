@@ -62,11 +62,11 @@ const UPCOMING = [
 function Step({ step, index }) {
   if (step.lesson) {
     const s = sectionById(step.lesson);
-    return <li><span className="path__n">{index + 1}</span><a href={`#/learn/${s.id}`}>{s.title}</a><span className="path__kind">lesson</span></li>;
+    return <li><span className="path__n">{index + 1}</span><a href={`/learn/${s.id}`}>{s.title}</a><span className="path__kind">lesson</span></li>;
   }
   if (step.problem) {
     const p = problemById(step.problem);
-    return <li><span className="path__n">{index + 1}</span><a href={`#/sim?problem=${p.id}`}>{p.title}</a><span className="path__kind">problem</span></li>;
+    return <li><span className="path__n">{index + 1}</span><a href={`/sim?problem=${p.id}`}>{p.title}</a><span className="path__kind">problem</span></li>;
   }
   return <li><span className="path__n">{index + 1}</span><span>{step.text}</span><span className="path__kind">practice</span></li>;
 }

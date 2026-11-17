@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { LEVELS, SECTIONS, sectionById, levelById } from '../course';
 import { problemById } from '../problems/problems';
 import { EXAMPLES } from '../course/examples';
+import { UPDATED } from '../seo/routes';
 import { SiteNav, TraceBullet } from './shared';
 import './site.css';
 import './lesson.css';
@@ -15,11 +16,11 @@ function Sidebar({ current }) {
           <ul>
             {level.sections.map((s) => (
               <li key={s.id}>
-                <a href={`#/learn/${s.id}`} aria-current={s.id === current.id ? 'page' : undefined}>{s.title}</a>
+                <a href={`/learn/${s.id}`} aria-current={s.id === current.id ? 'page' : undefined}>{s.title}</a>
                 {s.id === current.id && (
                   <ul className="ls-side__subs">
                     {s.subsections.map((sub) => (
-                      <li key={sub.id}><a href={`#/learn/${s.id}/${sub.id}`}>{sub.title}</a></li>
+                      <li key={sub.id}><a href={`/learn/${s.id}/${sub.id}`}>{sub.title}</a></li>
                     ))}
                   </ul>
                 )}
@@ -65,7 +66,6 @@ export default function Lesson({ sectionId, subsectionId }) {
   const practiceUnique = practice.filter((p, i) => practice.findIndex((q) => q.problemId === p.problemId) === i).slice(0, 3);
 
   useEffect(() => {
-    document.title = `${section.title} — Tracewire lessons`;
     if (subsectionId) {
       const el = document.getElementById(subsectionId);
       if (el) {
@@ -88,21 +88,21 @@ export default function Lesson({ sectionId, subsectionId }) {
 
         <article className={`ls-article ls-article--${level.tone}`}>
           <nav className="ls-crumbs" aria-label="Breadcrumb">
-            <a href="#/roadmap">Roadmap</a>
+            <a href="/roadmap">Roadmap</a>
             <span aria-hidden="true">/</span>
-            <a href="#/roadmap">{level.name}</a>
+            <a href="/roadmap">{level.name}</a>
             <span aria-hidden="true">/</span>
             <span aria-current="page">{section.title}</span>
           </nav>
           <h1>{section.title}</h1>
-          <p className="ls-meta">{level.name} · {section.subsections.length} lessons · {conceptCount} concepts</p>
+          <p className="ls-meta">{level.name} · {section.subsections.length} lessons · {conceptCount} concepts · Updated <time dateTime={UPDATED}>{new Date(UPDATED).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</time></p>
           <p className="ls-intro">{section.intro}</p>
 
           <div className="ls-contents">
             <h2>In this section</h2>
             <ul>
               {section.subsections.map((sub) => (
-                <li key={sub.id}><TraceBullet tone={level.tone} /><a href={`#/learn/${section.id}/${sub.id}`}>{sub.title}</a></li>
+                <li key={sub.id}><TraceBullet tone={level.tone} /><a href={`/learn/${section.id}/${sub.id}`}>{sub.title}</a></li>
               ))}
             </ul>
           </div>
@@ -140,11 +140,11 @@ export default function Lesson({ sectionId, subsectionId }) {
             <ul>
               {practiceUnique.map((p) => (
                 <li key={p.problemId}>
-                  <a href={`#/sim?problem=${p.problemId}`}>{problemById(p.problemId)?.title}</a>
+                  <a href={`/sim?problem=${p.problemId}`}>{problemById(p.problemId)?.title}</a>
                   <span>{p.like ? `like ${p.like}` : p.name}</span>
                 </li>
               ))}
-              <li><a href="#/sim">Free build</a><span>start from an empty canvas</span></li>
+              <li><a href="/sim">Free build</a><span>start from an empty canvas</span></li>
             </ul>
           </section>
 
@@ -155,7 +155,7 @@ export default function Lesson({ sectionId, subsectionId }) {
                 {section.next.map((id) => {
                   const s = sectionById(id);
                   return (
-                    <li key={id}><a href={`#/learn/${id}`}>{s.title}</a><span>{s.summary}</span></li>
+                    <li key={id}><a href={`/learn/${id}`}>{s.title}</a><span>{s.summary}</span></li>
                   );
                 })}
               </ul>
@@ -163,8 +163,8 @@ export default function Lesson({ sectionId, subsectionId }) {
           )}
 
           <nav className="ls-pager" aria-label="Previous and next section">
-            {prev ? <a href={`#/learn/${prev.id}`}><span>Previous</span>{prev.title}</a> : <span />}
-            {next ? <a className="ls-pager__next" href={`#/learn/${next.id}`}><span>Next</span>{next.title}</a> : <a className="ls-pager__next" href="#/sim"><span>Finished</span>Build something</a>}
+            {prev ? <a href={`/learn/${prev.id}`}><span>Previous</span>{prev.title}</a> : <span />}
+            {next ? <a className="ls-pager__next" href={`/learn/${next.id}`}><span>Next</span>{next.title}</a> : <a className="ls-pager__next" href="/sim"><span>Finished</span>Build something</a>}
           </nav>
         </article>
 
@@ -173,14 +173,14 @@ export default function Lesson({ sectionId, subsectionId }) {
           <ul>
             {section.subsections.map((sub) => (
               <li key={sub.id}>
-                <a href={`#/learn/${section.id}/${sub.id}`} aria-current={active === sub.id ? 'true' : undefined}>{sub.title}</a>
+                <a href={`/learn/${section.id}/${sub.id}`} aria-current={active === sub.id ? 'true' : undefined}>{sub.title}</a>
               </li>
             ))}
             {EXAMPLES[section.id] && (
-              <li><a href={`#/learn/${section.id}/worked-example`}>Worked example</a></li>
+              <li><a href={`/learn/${section.id}/worked-example`}>Worked example</a></li>
             )}
           </ul>
-          <a className="btn btn--small ls-toc__sim" href="#/sim">Open the simulator</a>
+          <a className="btn btn--small ls-toc__sim" href="/sim">Open the simulator</a>
         </aside>
       </div>
     </div>
