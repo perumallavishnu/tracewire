@@ -6,6 +6,7 @@ import FlowCanvas from './components/Canvas/FlowCanvas';
 import RightPanel from './components/RightPanel/RightPanel';
 import InterviewBar from './components/Interview/InterviewBar';
 import LearnDrawer from './components/Learn/LearnDrawer';
+import Tour, { TOUR_SEEN_KEY } from './components/Tour/Tour';
 import MetricsDock from './components/Metrics/MetricsDock';
 import ChaosDock from './components/ChaosPanel/ChaosDock';
 import NodeBuilderModal from './components/NodeBuilder/NodeBuilderModal';
@@ -63,6 +64,19 @@ export default function SimulatorApp({ problemId }) {
     init();
   }, [init]);
 
+  // first visit: open the guided tour once the layout has settled
+  useEffect(() => {
+    let seen = false;
+    try {
+      seen = localStorage.getItem(TOUR_SEEN_KEY) === '1';
+    } catch (e) {
+      seen = true;
+    }
+    if (seen) return undefined;
+    const t = setTimeout(() => useUiStore.getState().setTourOpen(true), 700);
+    return () => clearTimeout(t);
+  }, []);
+
   // #/sim?problem=<id> (links from lessons and the roadmap) opens that problem's brief
   useEffect(() => {
     if (!problemId) return;
@@ -97,6 +111,7 @@ export default function SimulatorApp({ problemId }) {
       <MetricsDock />
       {builderOpen && <NodeBuilderModal onClose={() => setBuilderOpen(false)} />}
       <LearnDrawer />
+      <Tour />
     </div>
   );
 }

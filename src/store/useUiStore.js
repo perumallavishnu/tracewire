@@ -33,12 +33,14 @@ export const useUiStore = create((set, get) => ({
   activeProblemId: loadProblemId(),
   score: null,
   learnOpen: false,
+  tourOpen: false,
   paletteWidth: loadPaletteWidth(),
   interview: { active: false, phase: 0, elapsedSec: 0, phaseStartSec: 0, paused: false },
 
   setLeftTab(leftTab) { set({ leftTab }); },
   setRightTab(rightTab) { set({ rightTab }); },
   setLearnOpen(learnOpen) { set({ learnOpen }); },
+  setTourOpen(tourOpen) { set({ tourOpen }); },
 
   setPaletteWidth(width) {
     const paletteWidth = Math.round(Math.min(PALETTE_MAX, Math.max(PALETTE_MIN, width)));

@@ -2,6 +2,9 @@ import { LEVELS, COURSE_STATS } from '../course';
 import LiveDial from './LiveDial';
 import { SiteNav, Trace, TraceBullet } from './shared';
 import { useReveal } from './siteUtils';
+import Accordion from './Accordion';
+import CountUp from './CountUp';
+import { EventLog, InterviewTimer, KillRevive } from './BoardLive';
 import RackFigure from './figure/RackFigure';
 import BrokenToBuilt from './figure/BrokenToBuilt';
 import './site.css';
@@ -18,12 +21,12 @@ const FAQ = [
 ];
 
 const MOSAIC = [
-  { size: 'score', name: 'Scored at full load', line: 'The link shortener reference design: p99 61 ms against a 100 ms target.', ui: <div className="ui-score"><b>98</b><span>/100</span></div> },
-  { size: 'tall', name: 'Replicas you can count', line: '5 app servers at 6,000 req/s each carry 20,000 with room to spare.', ui: <div className="ui-badge">×5</div> },
+  { size: 'score', name: 'Scored at full load', line: 'The link shortener reference design: p99 61 ms against a 100 ms target.', ui: <div className="ui-score"><b><CountUp to={98} duration={1600} /></b><span>/100</span></div> },
+  { size: 'tall', name: 'Replicas you can count', line: '5 app servers at 6,000 req/s each carry 20,000 with room to spare.', ui: <div className="ui-badge">×<CountUp to={5} from={1} duration={1200} delay={200} /></div> },
   { size: 'small', name: 'Hit rate changes everything', line: 'An 85% cache cuts database load from 19,780 to 2,964 req/s.', ui: <div className="ui-toggle"><span className="ui-toggle__track"><span /></span>Cache</div> },
-  { size: 'wide', name: 'Find what breaks first', line: 'The capacity table shows each component’s load at peak.', ui: <div className="ui-util"><span className="ui-util__bar"><span /></span><b>309%</b></div> },
-  { size: 'small', name: 'Break it on purpose', line: 'Kill a node mid-run and watch the retries pile up.', ui: <div className="ui-button">Revive node</div> },
-  { size: 'small', name: 'Interview on the clock', line: 'Six phases, from clarifying to the deep dive.', ui: <div className="ui-timer">4:12<span> / 15:00</span></div> },
+  { size: 'wide', name: 'Find what breaks first', line: 'The capacity table shows each component’s load at peak.', ui: <div className="ui-util"><span className="ui-util__bar"><span /></span><b><CountUp to={309} duration={1800} delay={150} />%</b></div> },
+  { size: 'small', name: 'Break it on purpose', line: 'Kill a node mid-run and watch the retries pile up.', ui: <KillRevive /> },
+  { size: 'small', name: 'Interview on the clock', line: 'Six phases, from clarifying to the deep dive.', ui: <InterviewTimer /> },
 ];
 
 export default function Landing() {
@@ -104,12 +107,7 @@ export default function Landing() {
           </div>
         ))}
         <div className="board__tile board__tile--photo" data-reveal>
-          <div className="board__log" data-ui>
-            <p><span>6.8s</span> Node Redirect Service killed</p>
-            <p className="is-warn"><span>6.8s</span> Retrying request after "node is down" at Redirect Service</p>
-            <p className="is-warn"><span>6.9s</span> Retrying request after "node is down" at Redirect Service</p>
-            <p><span>9.1s</span> Node Redirect Service revived</p>
-          </div>
+          <div className="board__logwrap" data-ui><EventLog /></div>
           <div className="board__caption">
             <h3>Every incident, logged</h3>
             <p>The event feed records each failure, retry and recovery as it happens.</p>
@@ -149,14 +147,7 @@ export default function Landing() {
 
       <section className="faq">
         <h2 data-reveal>Questions, answered</h2>
-        <div className="faq__list">
-          {FAQ.map(([q, a], i) => (
-            <details key={q} name="faq" open={i === 0} data-reveal>
-              <summary>{q}<span className="faq__plus" aria-hidden="true" /></summary>
-              <p>{a}</p>
-            </details>
-          ))}
-        </div>
+        <Accordion items={FAQ} />
       </section>
 
       <section className="close">
