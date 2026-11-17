@@ -1,93 +1,43 @@
-import { useEffect, useRef, useState } from 'react';
-import { ReactFlowProvider } from '@xyflow/react';
-import Toolbar from './components/Toolbar/Toolbar';
-import Palette from './components/Palette/Palette';
-import FlowCanvas from './components/Canvas/FlowCanvas';
-import RightPanel from './components/RightPanel/RightPanel';
-import InterviewBar from './components/Interview/InterviewBar';
-import LearnDrawer from './components/Learn/LearnDrawer';
-import MetricsDock from './components/Metrics/MetricsDock';
-import ChaosDock from './components/ChaosPanel/ChaosDock';
-import NodeBuilderModal from './components/NodeBuilder/NodeBuilderModal';
-import { useDiagramStore } from './store/useDiagramStore';
-import { useSimStore } from './store/useSimStore';
-import { useUiStore } from './store/useUiStore';
-import './styles/app.css';
+import { lazy, Suspense, useEffect } from 'react';
+import { useRoute } from './router';
+import { sectionById } from './course';
+import Landing from './site/Landing';
+import RouteSkeleton from './components/Skeleton';
 
-function useSimulationLoop() {
-  const rafRef = useRef(null);
-  const lastRef = useRef(null);
+// The simulator, roadmap canvas, lessons and 404 load on demand so the landing page stays light.
+const SimulatorApp = lazy(() => import('./SimulatorApp'));
+const Roadmap = lazy(() => import('./site/Roadmap'));
+const Lesson = lazy(() => import('./site/Lesson'));
+const NotFound = lazy(() => import('./site/NotFound'));
 
-  useEffect(() => {
-    const loop = (now) => {
-      if (lastRef.current == null) lastRef.current = now;
-      const dt = Math.min(0.25, (now - lastRef.current) / 1000);
-      lastRef.current = now;
-      const graph = { nodes: useDiagramStore.getState().nodes, edges: useDiagramStore.getState().edges };
-      useSimStore.getState().step(dt, graph);
-      rafRef.current = requestAnimationFrame(loop);
-    };
-    rafRef.current = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, []);
-}
+const TITLES = {
+  '': 'Tracewire — learn system design by running it',
+  roadmap: 'System design roadmap — Tracewire',
+  learn: 'Lessons — Tracewire',
+  sim: 'Simulator — Tracewire',
+  missing: 'Page not found — Tracewire',
+};
 
-// Space toggles the simulation and S scores, unless the user is typing.
-function useGlobalShortcuts() {
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
-      const tag = e.target.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target.isContentEditable) return;
-      if (e.target.closest?.('button, [role="button"], .react-flow__node')) return; // keep Space/Enter for focused controls
-      if (e.code === 'Space') {
-        e.preventDefault();
-        useSimStore.getState().toggle();
-      } else if (e.key === 's' || e.key === 'S') {
-        useUiStore.getState().runScore();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
-}
+// Routes live in the hash, so any real path other than the root is a wrong address.
+const onRealPath = () => !['/', '/index.html'].includes(window.location.pathname);
 
 export default function App() {
-  const [builderOpen, setBuilderOpen] = useState(false);
-  const init = useDiagramStore((s) => s.init);
-  const nodes = useDiagramStore((s) => s.nodes);
-  const edges = useDiagramStore((s) => s.edges);
-  const persist = useDiagramStore((s) => s.persist);
+  const route = useRoute();
+  let page = route.parts[0] || '';
+  const lessonMissing = page === 'learn' && route.parts[1] && !sectionById(route.parts[1]);
+  if (onRealPath() || lessonMissing || !['', 'roadmap', 'learn', 'sim'].includes(page)) page = 'missing';
 
   useEffect(() => {
-    init();
-  }, [init]);
+    document.title = TITLES[page];
+    if (page !== 'learn') window.scrollTo(0, 0);
+  }, [page]);
 
-  useEffect(() => {
-    const t = setTimeout(() => persist(), 400);
-    return () => clearTimeout(t);
-  }, [nodes, edges, persist]);
+  let content;
+  if (page === 'sim') content = <SimulatorApp problemId={route.query.get('problem')} />;
+  else if (page === 'roadmap') content = <Roadmap />;
+  else if (page === 'learn') content = <Lesson sectionId={route.parts[1]} subsectionId={route.parts[2]} />;
+  else if (page === 'missing') content = <NotFound path={onRealPath() ? window.location.pathname : `#${route.path}`} />;
+  else content = <Landing />;
 
-  useSimulationLoop();
-  useGlobalShortcuts();
-
-  return (
-    <div className="app-shell">
-      <Toolbar />
-      <InterviewBar />
-      <ReactFlowProvider>
-        <div className="app-body">
-          <Palette onOpenBuilder={() => setBuilderOpen(true)} />
-          <div className="canvas-column">
-            <FlowCanvas />
-            <ChaosDock />
-          </div>
-          <RightPanel />
-        </div>
-      </ReactFlowProvider>
-      <MetricsDock />
-      {builderOpen && <NodeBuilderModal onClose={() => setBuilderOpen(false)} />}
-      <LearnDrawer />
-    </div>
-  );
+  return <Suspense fallback={<RouteSkeleton page={page} />}>{content}</Suspense>;
 }

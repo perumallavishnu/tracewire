@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { CATEGORIES, NODE_TYPES } from '../../nodeDefs/nodeTypes';
 import { useDiagramStore } from '../../store/useDiagramStore';
-import { useUiStore } from '../../store/useUiStore';
+import { useUiStore, PALETTE_DEFAULT } from '../../store/useUiStore';
 import ProblemsPanel from '../Problems/ProblemsPanel';
+import KindBadge from '../KindBadge';
 
 const NOTE_DEF = { label: 'Sticky note', glyph: 'txt', description: 'Free text on the canvas for assumptions and open questions.' };
 
@@ -30,7 +31,7 @@ function PaletteItem({ kind, def, onAdd }) {
       aria-label={`Add ${def.label}`}
       title={`${def.description}\nDrag onto the canvas, or press Enter / double-click to add.`}
     >
-      <span className="palette-item__glyph">{def.glyph}</span>
+      <KindBadge kind={kind} glyph={def.glyph} className="palette-item__glyph" />
       <div className="palette-item__text">
         <div className="palette-item__label">{def.label}</div>
         <div className="palette-item__desc">{def.description}</div>
@@ -133,6 +134,44 @@ function ComponentList({ onOpenBuilder }) {
   );
 }
 
+// Drag the palette's right edge to resize it; arrow keys nudge, double-click resets.
+function ResizeHandle() {
+  const width = useUiStore((s) => s.paletteWidth);
+  const setWidth = useUiStore((s) => s.setPaletteWidth);
+  const onPointerDown = (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = width;
+    const el = e.currentTarget;
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('is-dragging');
+    const move = (ev) => setWidth(startW + ev.clientX - startX);
+    const up = () => {
+      el.classList.remove('is-dragging');
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', up);
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+  };
+  return (
+    <div
+      className="palette-resize"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize the component panel"
+      aria-valuenow={width}
+      tabIndex={0}
+      onPointerDown={onPointerDown}
+      onDoubleClick={() => setWidth(PALETTE_DEFAULT)}
+      onKeyDown={(e) => {
+        if (e.key === 'ArrowLeft') setWidth(width - 16);
+        if (e.key === 'ArrowRight') setWidth(width + 16);
+      }}
+    />
+  );
+}
+
 export default function Palette({ onOpenBuilder }) {
   const leftTab = useUiStore((s) => s.leftTab);
   const setLeftTab = useUiStore((s) => s.setLeftTab);
@@ -149,6 +188,7 @@ export default function Palette({ onOpenBuilder }) {
         </button>
       </div>
       {leftTab === 'components' ? <ComponentList onOpenBuilder={onOpenBuilder} /> : <ProblemsPanel />}
+      <ResizeHandle />
     </aside>
   );
 }

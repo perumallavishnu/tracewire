@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NODE_TYPES } from '../../nodeDefs/nodeTypes';
 import { TRADEOFFS } from '../../nodeDefs/tradeoffs';
 import { useDiagramStore } from '../../store/useDiagramStore';
+import KindBadge from '../KindBadge';
 
 export default function TradeoffsPanel() {
   const selectedKind = useDiagramStore((s) => s.nodes.find((n) => n.id === s.selectedNodeId)?.data.kind);
@@ -23,7 +24,7 @@ export default function TradeoffsPanel() {
         </label>
       )}
       <div className="tradeoff-head">
-        <span className="palette-item__glyph">{def.glyph}</span>
+        <KindBadge kind={kind} glyph={def.glyph} className="palette-item__glyph" size={18} />
         <span className="tradeoff-head__label">{def.label}</span>
       </div>
       <p className="tradeoff-use">{t.use}</p>
