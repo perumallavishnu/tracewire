@@ -2,6 +2,21 @@
 
 All notable changes to Tracewire. Versions follow [semantic versioning](https://semver.org).
 
+## 1.1.1 — 2026-11-17
+
+Faster first visit. Measured on a throttled connection (1.6 Mbps, 150 ms latency, 4x slower CPU, empty cache):
+
+| Moment | 1.1.0 | 1.1.1 |
+|---|---|---|
+| Styled landing page on screen | 1.2 to 1.5 s (unstyled text first) | 0.74 s |
+| Page interactive | 1.9 s | 1.0 s |
+| Hero rack drawn | 1.95 s | 1.2 to 1.3 s |
+
+### Changed
+- The landing page is rendered with React at build time and hydrated, so the first paint is the finished, styled page instead of plain text that is later swapped out.
+- The hero rack loads on its own: its code is preloaded alongside the main bundle, and an animated loader (server blades stacking into a rack) holds its exact place until it arrives, so nothing shifts.
+- The dial and broken-to-built figures wait for the rack, so they never compete with it for bandwidth.
+
 ## 1.1.0 — 2026-11-17
 
 Search and AI-search visibility.

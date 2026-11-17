@@ -1,12 +1,13 @@
 // Build-time prerender (runs after `vite build`, on Vercel too): writes a static HTML file for
 // every route with its own title, description, canonical, Open Graph tags, JSON-LD and the
 // page's real content, so crawlers that do not run JavaScript (and first paint) see it.
-// React replaces the static markup on load with the identical interactive page.
+// The landing page is React's own render, hydrated on load; the other pages ship a static
+// version of the same content that React replaces with the interactive page.
 // Also writes sitemap.xml, robots.txt, llms.txt, llms-full.txt and 404.html.
 
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ALL_ROUTES, metaForRoute, NOT_FOUND_META, OG_IMAGE, REPO_URL, SITE_NAME, SITE_URL, UPDATED } from '../src/seo/routes.js';
 import { LEVELS, SECTIONS, sectionById, levelById, COURSE_STATS } from '../src/course/index.js';
 import { EXAMPLES } from '../src/course/examples.js';
@@ -16,6 +17,31 @@ import { FAQ } from '../src/site/faqData.js';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
 const template = readFileSync(join(DIST, 'index.html'), 'utf8');
+
+// The landing page is rendered with React itself (dist-ssr, built by `vite build --ssr`) and
+// hydrated on the client, so its first paint is the finished page, not plain text.
+const { render } = await import(pathToFileURL(join(ROOT, 'dist-ssr', 'entry-server.js')).href);
+
+// <link rel=modulepreload> for the hero rack's chunks, so they download alongside the main
+// bundle instead of after it
+const MANIFEST_FILE = join(DIST, '.vite', 'manifest.json');
+function preloadTags(entry) {
+  if (!existsSync(MANIFEST_FILE)) return '';
+  const manifest = JSON.parse(readFileSync(MANIFEST_FILE, 'utf8'));
+  const js = new Set();
+  const css = new Set();
+  const visit = (key) => {
+    const chunk = manifest[key];
+    if (!chunk || chunk.isEntry || js.has(chunk.file)) return;
+    js.add(chunk.file);
+    (chunk.css || []).forEach((f) => css.add(f));
+    (chunk.imports || []).forEach(visit);
+  };
+  visit(entry);
+  [...js].forEach((f) => { if (template.includes(f)) js.delete(f); });
+  return [...[...css].map((f) => `<link rel="preload" as="style" crossorigin href="/${f}" />`), ...[...js].map((f) => `<link rel="modulepreload" crossorigin href="/${f}" />`)].join('\n    ');
+}
+const HERO_PRELOAD = preloadTags('src/site/figure/RackFigure.jsx');
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const abs = (path) => SITE_URL + (path === '/' ? '/' : path);
@@ -66,23 +92,6 @@ const NAV = `<header class="pr-nav"><a href="/">Tracewire</a><nav><a href="/road
 const FOOT = `<footer class="pr-foot"><p>Tracewire is free, open-source software under the MIT licence. <a href="${REPO_URL}">Source on GitHub</a>.</p></footer>`;
 const sectionLink = (s) => `<a href="/learn/${s.id}">${esc(s.title)}</a>`;
 
-function landingBody() {
-  const levels = LEVELS.map((l) => `
-    <section><h3>${esc(l.name)}: ${esc(l.tagline)}</h3><ul>${l.sections.map((s) => `<li>${sectionLink(s)}: ${esc(s.summary)}</li>`).join('')}</ul>
-    <p>Then build: ${l.projects.real.map((p) => `${esc(p.name)} (like ${esc(p.like)})`).join(', ')}.</p></section>`).join('');
-  return `${NAV}<main>
-  <h1>Design systems, then break them</h1>
-  <p>Tracewire is a free system design course with a simulator built in. It covers high-level and low-level design from beginner to advanced: ${COURSE_STATS.sections} sections, ${COURSE_STATS.subsections} lessons and ${COURSE_STATS.concepts} concepts, a worked example with real numbers in every section, eight practice problems with reference designs and ${COURSE_STATS.projects} projects to build. Every design you draw meets real load, real failures and a 100-point score.</p>
-  <p><a href="/roadmap">Start the roadmap</a> · <a href="/sim">Open the simulator</a> · <a href="/learn/${SECTIONS[0].id}">Read lesson one</a></p>
-  <h2>20,000 requests, two designs</h2>
-  <p>With an 85% cache the database sees about 3,000 requests a second. Remove the cache and it gets nearly 20,000, and two thirds of them fail. The interactive dial on this page computes these numbers live with the same model the simulator scores designs with.</p>
-  <h2>From a pile of servers to a system</h2>
-  <p>Machines alone fall over. Four principles, applied in order, turn them into something that stays up: spread the load, cache the hot reads, replicate the data, queue the slow work.</p>
-  <h2>The roadmap, zone by zone</h2>${levels}
-  <h2>Questions, answered</h2>${FAQ.map(([q, a]) => `<h3>${esc(q)}</h3><p>${esc(a)}</p>`).join('')}
-  </main>${FOOT}`;
-}
-
 function lessonBody(section) {
   const level = levelById(section.level);
   const i = SECTIONS.findIndex((s) => s.id === section.id);
@@ -129,7 +138,7 @@ function simBody() {
 // ---------- page assembly ----------
 const STATIC_CSS = `<style>.pr{max-width:820px;margin:0 auto;padding:24px 20px 64px;color:#e6edf3;background:#0b0e11;font:17px/1.6 Inter,system-ui,sans-serif}.pr a{color:#4fd1c5}.pr h1,.pr h2,.pr h3{font-family:'Space Grotesk',system-ui,sans-serif;line-height:1.15}.pr-nav,.pr-nav nav{display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;justify-content:space-between}.pr pre{overflow:auto;background:#12161b;padding:12px}</style>`;
 
-function page(meta, body, jsonld) {
+function page(meta, body, jsonld, { ssr = false, extraHead = '' } = {}) {
   const url = meta.path ? abs(meta.path) : null;
   let html = template
     .replace(/<title>[\s\S]*?<\/title>\s*/, '')
@@ -152,9 +161,12 @@ function page(meta, body, jsonld) {
     `<meta name="twitter:description" content="${esc(meta.description)}" />`,
     `<meta name="twitter:image" content="${OG_IMAGE}" />`,
     jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, '\\u003c')}</script>` : '',
-    STATIC_CSS,
+    ssr ? '' : STATIC_CSS,
+    extraHead,
   ].filter(Boolean).join('\n    ');
   html = html.replace('</head>', `    ${head}\n  </head>`);
+  // data-ssr names the route the markup was rendered for; the client hydrates only on that path
+  if (ssr) return html.replace('<div id="root"></div>', `<div id="root" data-ssr="${meta.path}">${body}</div>`);
   return html.replace('<div id="root"></div>', `<div id="root"><div class="pr">${body}</div></div>`);
 }
 
@@ -168,8 +180,10 @@ for (const parts of ALL_ROUTES) {
   const meta = metaForRoute(parts);
   let body;
   let ld;
+  let opts;
   if (parts.length === 0) {
-    body = landingBody();
+    body = render('/');
+    opts = { ssr: true, extraHead: HERO_PRELOAD };
     ld = graph(ORG, { '@type': 'WebSite', '@id': `${SITE_URL}/#site`, name: SITE_NAME, url: `${SITE_URL}/`, publisher: { '@id': `${SITE_URL}/#org` }, inLanguage: 'en' }, COURSE, WEBAPP,
       { '@type': 'FAQPage', mainEntity: FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) });
   } else if (parts[0] === 'roadmap') {
@@ -204,7 +218,7 @@ for (const parts of ALL_ROUTES) {
       },
     );
   }
-  write(meta.path, page(meta, body, ld));
+  write(meta.path, page(meta, body, ld, opts));
 }
 
 // 404: served by Vercel with a 404 status for any path that has no file
@@ -265,5 +279,8 @@ for (const l of LEVELS) {
   }
 }
 writeFileSync(join(DIST, 'llms-full.txt'), full.join(''));
+
+// build-only artefacts: the manifest and the server bundle are not part of the site
+rmSync(join(DIST, '.vite'), { recursive: true, force: true });
 
 console.log(`prerendered ${ALL_ROUTES.length} pages, 404.html, sitemap.xml (${urls.length} urls), robots.txt, llms.txt, llms-full.txt`);

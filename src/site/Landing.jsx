@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { useEffect, useState } from 'react';
 import { LEVELS, COURSE_STATS } from '../course';
 import { SiteNav, Trace, TraceBullet } from './shared';
 import { useReveal } from './siteUtils';
@@ -7,10 +7,14 @@ import { FAQ } from './faqData';
 import { ComingNext, LearningPaths } from './Paths';
 import CountUp from './CountUp';
 import { EventLog, InterviewTimer, KillRevive } from './BoardLive';
+import RackLoader from './figure/RackLoader';
 // the interactive figures load after the text has painted; placeholders keep the layout still
-const RackFigure = lazy(() => import('./figure/RackFigure'));
-const LiveDial = lazy(() => import('./LiveDial'));
-const BrokenToBuilt = lazy(() => import('./figure/BrokenToBuilt'));
+const loadRack = () => import('./figure/RackFigure');
+// the figures below the fold queue behind the rack so they never compete with it
+const loadDial = () => loadRack().then(() => import('./LiveDial'));
+const loadBrokenToBuilt = () => loadRack().then(() => import('./figure/BrokenToBuilt'));
+// the hero rack is above the fold: start fetching it as soon as this bundle runs
+if (typeof window !== 'undefined' && window.location.pathname === '/') loadRack();
 import './site.css';
 
 const MOSAIC = [
@@ -21,6 +25,19 @@ const MOSAIC = [
   { size: 'small', name: 'Break it on purpose', line: 'Kill a node mid-run and watch the retries pile up.', ui: <KillRevive /> },
   { size: 'small', name: 'Interview on the clock', line: 'Six phases, from clarifying to the deep dive.', ui: <InterviewTimer /> },
 ];
+
+// The page is rendered to HTML at build time and hydrated. A figure shows its placeholder
+// through hydration (so server and client markup match) and swaps in the moment its code
+// has arrived. Plain state rather than Suspense: no reveal throttling on the swap.
+function Figure({ load, fallback }) {
+  const [Component, setComponent] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    load().then((m) => alive && setComponent(() => m.default));
+    return () => { alive = false; };
+  }, [load]);
+  return Component ? <Component /> : fallback;
+}
 
 export default function Landing() {
   const ref = useReveal();
@@ -45,7 +62,7 @@ export default function Landing() {
             </div>
           </div>
         </div>
-        <div className="hero__figure"><Suspense fallback={<div className="figure-wait figure-wait--rack" />}><RackFigure /></Suspense></div>
+        <div className="hero__figure"><Figure load={loadRack} fallback={<RackLoader />} /></div>
       </section>
 
       <section className="show" id="dial">
@@ -55,7 +72,7 @@ export default function Landing() {
             With an 85% cache the database sees about 3,000 requests a second. Remove the cache and it gets nearly 20,000, and two thirds of them fail. Move the dial and see for yourself.
           </p>
         </div>
-        <div data-reveal><Suspense fallback={<div className="figure-wait figure-wait--dial" />}><LiveDial /></Suspense></div>
+        <div data-reveal><Figure load={loadDial} fallback={<div className="figure-wait figure-wait--dial" />} /></div>
         <div className="show__actions" data-reveal>
           <a className="cell cell--ink" href="/sim?problem=link-shortener">Build it in the simulator</a>
           <a className="cell" href="/learn/caching-101">Read the caching lesson</a>
@@ -67,7 +84,7 @@ export default function Landing() {
           <h2 data-reveal>From a pile of servers to a system</h2>
           <p data-reveal>Machines alone fall over. Four principles, applied in order, turn them into something that stays up: spread the load, cache the hot reads, replicate the data, queue the slow work.</p>
         </div>
-        <div data-reveal><Suspense fallback={<div className="figure-wait figure-wait--bb" />}><BrokenToBuilt /></Suspense></div>
+        <div data-reveal><Figure load={loadBrokenToBuilt} fallback={<div className="figure-wait figure-wait--bb" />} /></div>
       </section>
 
       <section className="stats">

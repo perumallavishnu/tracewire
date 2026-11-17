@@ -1,7 +1,7 @@
 {
   "name": "tracewire",
   "description": "A free, open-source, self-hosted system design simulator — build architectures, run live traffic, and inject chaos.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "license": "MIT",
   "homepage": "https://tracewire-nine.vercel.app",
   "repository": {
@@ -12,7 +12,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && tsx scripts/prerender.mjs",
+    "build": "vite build && vite build --ssr src/entry-server.jsx --outDir dist-ssr --emptyOutDir && tsx scripts/prerender.mjs",
     "lint": "oxlint",
     "preview": "vite preview"
   },

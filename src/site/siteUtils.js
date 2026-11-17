@@ -8,8 +8,14 @@ export function useReveal() {
   useEffect(() => {
     const root = ref.current;
     if (!root) return undefined;
-    document.documentElement.classList.add('js-reveal');
     const items = root.querySelectorAll('[data-reveal]');
+    // hydrating build-time HTML: whatever is already on screen stays put instead of
+    // vanishing and fading back in
+    if (document.getElementById('root')?.hasAttribute('data-ssr')) {
+      const fold = window.innerHeight;
+      items.forEach((el) => { if (el.getBoundingClientRect().top < fold) el.classList.add('is-in'); });
+    }
+    document.documentElement.classList.add('js-reveal');
     if (!('IntersectionObserver' in window)) {
       items.forEach((el) => el.classList.add('is-in'));
       return undefined;
