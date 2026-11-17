@@ -96,6 +96,9 @@
 
 @media (max-width: 860px) {
   .ls-grid { grid-template-columns: 1fr; gap: 20px; padding-top: 8px; }
+  .ls-crumbs { gap: 4px 8px; align-items: center; }
+  .ls-crumbs a { padding: 8px 0; }
+  .ls-pager a { min-height: 72px; }
   .ls-side-wrap { display: none; }
   .ls-side-toggle { display: block; background: var(--field); }
   .ls-side-toggle summary { cursor: pointer; padding: 14px 18px; font-family: var(--display); font-weight: 600; }
