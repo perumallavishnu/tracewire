@@ -7,7 +7,11 @@ import { useEffect, useState } from 'react';
 
 const NAV_EVENT = 'tw:navigate';
 
+// During the build-time render there is no window; scripts/prerender.mjs sets the URL.
+const isServer = typeof window === 'undefined';
+
 function upgradeHashUrl() {
+  if (isServer) return;
   const { hash } = window.location;
   if (hash.startsWith('#/')) {
     window.history.replaceState(null, '', hash.slice(1) || '/');
@@ -15,9 +19,10 @@ function upgradeHashUrl() {
 }
 
 function parse() {
-  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  const loc = isServer ? new URL(globalThis.__TW_SSR_URL__ || '/', 'http://localhost') : window.location;
+  const path = loc.pathname.replace(/\/+$/, '') || '/';
   const parts = path.split('/').filter(Boolean);
-  return { path, parts, query: new URLSearchParams(window.location.search) };
+  return { path, parts, query: new URLSearchParams(loc.search) };
 }
 
 export function useRoute() {

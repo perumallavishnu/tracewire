@@ -118,10 +118,52 @@
 .hero__figure { position: sticky; top: 12px; height: calc(100svh - 80px); min-height: 620px; }
 
 /* placeholders while an interactive figure's code loads (same footprint, so nothing shifts) */
-.figure-wait { background: var(--field); }
-.figure-wait--rack { height: 100%; min-height: 620px; }
+/* a slow sheen sweeps across so a waiting figure reads as loading, not empty */
+.figure-wait { position: relative; overflow: hidden; background: var(--field); }
+.figure-wait::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.045) 50%, transparent 70%);
+  transform: translateX(-100%); animation: wait-sheen 1.6s ease-in-out infinite;
+}
+@keyframes wait-sheen { to { transform: translateX(100%); } }
 .figure-wait--dial { min-height: 640px; }
 .figure-wait--bb { aspect-ratio: 1200 / 460; }
+
+/* hero rack loader: the rack card's frame, blades stacking in a loop */
+.rack-load { display: flex; flex-direction: column; height: 100%; min-height: 620px; background: #12161b; }
+.rack-load__row { box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 20px; min-height: 56px; }
+.rack-load__pill { display: block; height: 12px; max-width: 45%; background: #1c232b; }
+.rack-load__stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: var(--field); min-height: 300px; }
+.rack-load__art { width: min(260px, 60%); height: auto; overflow: visible; }
+.rack-load__floor { fill: #0f1317; }
+.rack-load__top { fill: #2b343e; stroke: #3a4651; stroke-width: 1; }
+.rack-load__left { fill: #161b21; }
+.rack-load__right { fill: #1f262e; }
+.rack-load__led { fill: #4fd1c5; opacity: 0.25; animation: rack-led 1.2s steps(1) infinite; animation-delay: calc(var(--i) * 0.3s + var(--k) * 0.2s); }
+.rack-load__blade { animation: rack-drop 3.2s cubic-bezier(0.2, 0.7, 0.1, 1) infinite; animation-delay: calc(var(--i) * 0.22s); }
+@keyframes rack-drop {
+  0% { opacity: 0; transform: translateY(-28px); }
+  14%, 78% { opacity: 1; transform: none; }
+  92%, 100% { opacity: 0; transform: none; }
+}
+@keyframes rack-led { 0% { opacity: 0.25; } 50% { opacity: 1; } }
+.rack-load__label { margin: 0; font-size: 14px; color: #a3adb8; letter-spacing: 0.02em; }
+.rack-load__progress { position: relative; width: 140px; height: 2px; overflow: hidden; background: #1c232b; }
+.rack-load__progress span { position: absolute; inset: 0; width: 40%; background: #4fd1c5; animation: rack-progress 1.4s ease-in-out infinite; }
+@keyframes rack-progress { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+/* phones: the rack card stacks its controls under the readout, so the loader does too */
+@media (max-width: 860px) {
+  .rack-load { min-height: 0; }
+  /* the rack drawing is 640x560, drawn at the card width less 64px of padding */
+  .rack-load__stage { flex: none; min-height: max(300px, calc((100vw - 64px) * 0.875)); }
+  .rack-load__row { min-height: 54px; }
+  .rack-load__row--foot { flex-direction: column; align-items: flex-start; justify-content: center; min-height: 98px; }
+}
+@media (max-width: 430px) { .rack-load__row--foot { min-height: 142px; } }
+@media (prefers-reduced-motion: reduce) {
+  .figure-wait::after, .rack-load__blade, .rack-load__led, .rack-load__progress span { animation: none; }
+  .rack-load__led { opacity: 0.8; }
+}
 
 /* ---------- showcase: the dial ---------- */
 

@@ -13,7 +13,7 @@ every section, eight practice problems with reference designs, and 45
 projects to build. Everything runs in your browser. No account, no server,
 no paywall.
 
-**Live: [tracewire-nine.vercel.app](https://tracewire-nine.vercel.app)** · Version 1.1.0 · [Changelog](CHANGELOG.md) · MIT licence
+**Live: [tracewire-nine.vercel.app](https://tracewire-nine.vercel.app)** · Version 1.1.1 · [Changelog](CHANGELOG.md) · MIT licence
 
 ![Tracewire landing page](docs/screenshots/interface-overview.png)
 
