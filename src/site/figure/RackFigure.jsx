@@ -1,39 +1,69 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { MoveHorizontal, MoveVertical } from 'lucide-react';
 import { lineOnTop } from '../iso/iso-kit.mjs';
 import { analyzeDesign } from '../../simulation/analyze';
-import { buildDemoGraph } from '../demoModel';
+import { defaultConfigFor } from '../../nodeDefs/nodeTypes';
 import { formatQps } from '../../utils/format';
-import { RACK_SVG, RACK_META } from './rack.generated';
+import { buildRackScene, BLADES_PER_RACK, MAX_RACKS, MAX_TIER, RAM_GB } from './rackScene';
 import '../iso/iso.css';
 import './rack.css';
 
-// Live layer for the rack figure. The static drawing is generated at build time
-// (scripts/build-rack-figure.mjs); this only moves the parts that change: meter fills,
-// LEDs, the knob pointer, the p99 needle and request pulses on the feed cable.
+// Fig 1: drag sideways to scale out (more racks, linked to each other), drag up to scale up
+// (more memory and drives per server). The model follows the drawing: racks multiply the
+// replicas, the tier multiplies each server's capacity. Traffic tours on its own.
 
 const MIN = 1000;
-const MAX = 120000;
-const GRAPH = buildDemoGraph({ cache: true, services: 5, dbs: 2 });
-const TOUR = [4000, 20000, 48000, 90000, 20000];
+const MAX = 160000;
+const TOUR = [6000, 24000, 60000, 120000, 24000];
+const STEP_X = 70; // px of drag per rack
+const STEP_Y = 56; // px of drag per tier
 const share = (t) => Math.log(t / MIN) / Math.log(MAX / MIN);
-const fromShare = (s) => MIN * Math.pow(MAX / MIN, Math.min(1, Math.max(0, s)));
 const stateOf = (u) => (u > 1 ? 'error' : u > 0.8 ? 'warn' : 'ok');
 
-function pointer(at, turn, r, z) {
+function graphFor(racks, tier) {
+  const node = (id, kind, config) => ({ id, data: { kind, label: id, config } });
+  const svc = { ...defaultConfigFor('service'), baseLatencyMs: 15, jitterMs: 10 };
+  const db = defaultConfigFor('database');
+  return {
+    nodes: [
+      node('gen', 'generator', { rate: 1 }),
+      node('lb', 'loadbalancer', defaultConfigFor('loadbalancer')),
+      node('svc', 'service', { ...svc, capacity: svc.capacity * tier, replicas: BLADES_PER_RACK * racks }),
+      node('cache', 'cache', { ...defaultConfigFor('cache'), cacheHitRate: 0.85, replicas: racks }),
+      node('db', 'database', { ...db, capacity: db.capacity * tier, replicas: racks }),
+    ],
+    edges: [
+      { id: 'a', source: 'gen', target: 'lb', data: { latencyMs: 2 } },
+      { id: 'b', source: 'lb', target: 'svc', data: { latencyMs: 2 } },
+      { id: 'c', source: 'svc', target: 'cache', data: { latencyMs: 1 } },
+      { id: 'd', source: 'cache', target: 'db', data: { latencyMs: 2 } },
+    ],
+  };
+}
+
+function pointer(P, at, turn, r, z) {
   const a = turn * Math.PI * 2;
   const [x, y] = at;
-  return lineOnTop([x - Math.sin(a) * 2.6, y + Math.cos(a) * 2.6], [x + Math.sin(a) * r, y - Math.cos(a) * r], z, RACK_META.P);
+  return lineOnTop([x - Math.sin(a) * 2.6, y + Math.cos(a) * 2.6], [x + Math.sin(a) * r, y - Math.cos(a) * r], z, P);
 }
 
 export default function RackFigure() {
+  const [racks, setRacks] = useState(1);
+  const [tier, setTier] = useState(1);
+  const scene = useMemo(() => buildRackScene({ racks, tier }), [racks, tier]);
+  const graph = useMemo(() => graphFor(racks, tier), [racks, tier]);
   const stageRef = useRef(null);
   const readoutRef = useRef(null);
+  const traffic = useRef(TOUR[1]);
+  const drag = useRef(null);
+  const [dragging, setDragging] = useState(false);
 
+  // live layer: rebinds whenever the drawing is rebuilt
   useEffect(() => {
     const stage = stageRef.current;
-    const readout = readoutRef.current; // kept: React clears the ref before this effect's cleanup runs
-    let alive = true;
+    const readout = readoutRef.current; // kept: React clears refs before this effect's cleanup
     const svg = stage.querySelector('svg');
+    const { P, knob, gauge } = scene.meta;
     const parts = {
       knob: svg.querySelector('[data-part="knob"]'),
       needle: svg.querySelector('[data-part="needle"]'),
@@ -44,161 +74,161 @@ export default function RackFigure() {
     };
     const feedLength = parts.feed.getTotalLength();
     const still = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const pulseDots = Array.from({ length: 14 }, () => {
+    const dots = Array.from({ length: 14 }, () => {
       const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       c.setAttribute('r', '1.6');
       c.setAttribute('class', 'fig-pulse');
       parts.pulses.appendChild(c);
       return c;
     });
-
-    let traffic = TOUR[1];
-    let target = traffic;
-    let touring = !still.matches;
+    let alive = true;
+    let frame = 0;
+    let last = 0;
     let clock = 0;
     let phase = 0;
-    let last = 0;
-    let frame = 0;
+    let needleTurn = -0.4;
     let visible = false;
-    let idleTimer = 0;
-    let lastKey = '';
-    let needleTurn = 0;
+    let lastText = '';
 
-    function apply() {
-      const a = analyzeDesign(GRAPH, { entryQps: traffic });
+    function draw(dt) {
+      const t = traffic.current;
+      const a = analyzeDesign(graph, { entryQps: t });
       const util = { svc: a.nodes.svc.utilization, cache: a.nodes.cache.utilization, db: a.nodes.db.utilization };
       for (const m of parts.meters) {
-        const id = m.dataset.meter;
-        const u = id.startsWith('svc') ? util.svc : id === 'cache' ? util.cache : util.db;
-        const width = RACK_META.meters[id] * Math.min(1, u);
-        m.setAttribute('width', width.toFixed(2));
+        const kind = m.dataset.meter.split('-')[0];
+        const u = util[kind];
+        m.setAttribute('width', (Number(m.dataset.full) * Math.min(1, u)).toFixed(2));
         m.dataset.state = stateOf(u);
       }
-      const lit = Math.ceil(share(traffic) * 5);
+      const lit = Math.ceil(share(t) * 5);
       for (const led of parts.leds) {
         const id = led.dataset.led;
         let state;
-        if (id.startsWith('gen-')) state = Number(id.slice(4)) < lit ? (traffic > 60000 ? 'warn' : 'ok') : 'off';
-        else if (id === 'lb') state = a.errorRate > 0.05 ? 'warn' : 'ok';
-        else state = stateOf(id.startsWith('svc') ? util.svc : id === 'cache' ? util.cache : util.db);
+        if (id.startsWith('gen-')) state = Number(id.slice(4)) < lit ? (t > 80000 ? 'warn' : 'ok') : 'off';
+        else if (id.startsWith('switch')) state = a.errorRate > 0.05 ? 'warn' : 'ok';
+        else state = stateOf(util[id.split('-')[0]]);
         led.dataset.state = state;
       }
-      parts.knob.setAttribute('d', pointer(RACK_META.knob.at, -0.38 + share(traffic) * 0.76, RACK_META.knob.r, RACK_META.knob.z));
-      return a;
-    }
-
-    function draw(dt) {
-      const a = apply();
-      // the needle follows p99 like a damped instrument: 0 to 400 ms over 0.8 of a turn
-      const want = Math.min(400, a.p99Ms) / 400 * 0.8 - 0.4;
+      parts.knob.setAttribute('d', pointer(P, knob.at, -0.38 + share(t) * 0.76, knob.r, knob.z));
+      const want = (Math.min(400, a.p99Ms) / 400) * 0.8 - 0.4;
       needleTurn = still.matches ? want : needleTurn + (want - needleTurn) * (1 - Math.exp(-dt / 0.35));
-      parts.needle.setAttribute('d', pointer(RACK_META.gauge.at, needleTurn, RACK_META.gauge.r, RACK_META.gauge.z));
-      // request pulses: more and faster with traffic; red once requests start failing
-      const count = Math.max(2, Math.round(share(traffic) * pulseDots.length));
-      phase = (phase + dt * (0.18 + share(traffic) * 0.5)) % 1;
-      pulseDots.forEach((dot, i) => {
+      parts.needle.setAttribute('d', pointer(P, gauge.at, needleTurn, gauge.r, gauge.z));
+      const count = Math.max(2, Math.round(share(t) * dots.length));
+      phase = (phase + dt * (0.18 + share(t) * 0.5)) % 1;
+      dots.forEach((dot, i) => {
         if (i >= count || still.matches) {
           dot.setAttribute('opacity', '0');
           return;
         }
-        const t = (phase + i / count) % 1;
-        const p = parts.feed.getPointAtLength(t * feedLength);
-        dot.setAttribute('cx', p.x.toFixed(1));
-        dot.setAttribute('cy', p.y.toFixed(1));
-        dot.setAttribute('opacity', String(Math.min(1, t * 6, (1 - t) * 6)));
+        const u = (phase + i / count) % 1;
+        const pt = parts.feed.getPointAtLength(u * feedLength);
+        dot.setAttribute('cx', pt.x.toFixed(1));
+        dot.setAttribute('cy', pt.y.toFixed(1));
+        dot.setAttribute('opacity', String(Math.min(1, u * 6, (1 - u) * 6)));
         dot.style.fill = a.errorRate > 0.05 ? '#e5484d' : '';
       });
-      const text = `${formatQps(traffic)} req/s · p99 ${Math.round(a.p99Ms)} ms · apps at ${Math.round(a.nodes.svc.utilization * 100)}%`;
-      if (text !== lastKey) {
-        lastKey = text;
+      const text = `${formatQps(t)} req/s · p99 ${Math.round(a.p99Ms)} ms · apps at ${Math.round(util.svc * 100)}%`;
+      if (text !== lastText) {
+        lastText = text;
         readout.textContent = text;
-        stage.setAttribute('aria-valuetext', text);
-        stage.setAttribute('aria-valuenow', String(Math.round(traffic)));
       }
     }
-
     function tick(now) {
       if (!alive) return;
       const dt = last ? Math.min((now - last) / 1000, 1 / 20) : 1 / 60;
       last = now;
-      if (touring) {
-        clock += dt;
-        target = TOUR[Math.floor(clock / 3.2) % TOUR.length];
-      }
-      traffic = still.matches ? target : traffic + (target - traffic) * (1 - Math.exp(-dt / 0.6));
+      clock += dt;
+      const target = TOUR[Math.floor(clock / 3.4) % TOUR.length];
+      traffic.current += (target - traffic.current) * (1 - Math.exp(-dt / 0.7));
       draw(dt);
-      frame = visible && !still.matches ? requestAnimationFrame(tick) : 0;
+      frame = visible ? requestAnimationFrame(tick) : 0;
     }
-    const run = () => {
-      if (!frame && visible) {
+    const io = new IntersectionObserver((entries) => {
+      visible = entries[entries.length - 1].isIntersecting;
+      if (visible && !frame && !still.matches) {
         last = 0;
         frame = requestAnimationFrame(tick);
       }
-    };
-    const steer = (next) => {
-      touring = false;
-      target = Math.min(MAX, Math.max(MIN, next));
-      clearTimeout(idleTimer);
-      idleTimer = setTimeout(() => {
-        touring = !still.matches;
-        clock = 0;
-        run();
-      }, 4000);
-      if (still.matches) draw(1);
-      run();
-    };
-
-    const io = new IntersectionObserver((entries) => {
-      visible = entries[entries.length - 1].isIntersecting;
-      if (visible) run();
     }, { rootMargin: '80px 0px' });
     io.observe(stage);
-
-    const onMove = (e) => {
-      const box = svg.getBoundingClientRect();
-      steer(fromShare(((e.clientX - box.left) / box.width - 0.15) / 0.7));
-    };
-    const onKey = (e) => {
-      const step = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
-      if (e.key === 'Home') steer(MIN);
-      else if (e.key === 'End') steer(MAX);
-      else if (step) steer(fromShare(share(target) + step * 0.08));
-      else return;
-      e.preventDefault();
-    };
-    stage.addEventListener('pointermove', onMove);
-    stage.addEventListener('keydown', onKey);
     draw(1);
-
     return () => {
       alive = false;
       cancelAnimationFrame(frame);
-      clearTimeout(idleTimer);
       io.disconnect();
-      stage.removeEventListener('pointermove', onMove);
-      stage.removeEventListener('keydown', onKey);
     };
-  }, []);
+  }, [scene, graph]);
+
+  // drag: sideways scales out, vertical scales up; snaps one step per threshold crossed
+  const onPointerDown = (e) => {
+    if (e.button !== 0) return;
+    drag.current = { x: e.clientX, y: e.clientY, racks, tier };
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDragging(true);
+  };
+  const onPointerMove = (e) => {
+    const d = drag.current;
+    if (!d) return;
+    const nextRacks = Math.min(MAX_RACKS, Math.max(1, d.racks + Math.round((e.clientX - d.x) / STEP_X)));
+    const nextTier = e.pointerType === 'touch' ? d.tier : Math.min(MAX_TIER, Math.max(1, d.tier + Math.round((d.y - e.clientY) / STEP_Y)));
+    if (nextRacks !== racks) setRacks(nextRacks);
+    if (nextTier !== tier) setTier(nextTier);
+  };
+  const endDrag = () => {
+    drag.current = null;
+    setDragging(false);
+  };
+  const onKeyDown = (e) => {
+    const map = {
+      ArrowRight: () => setRacks((r) => Math.min(MAX_RACKS, r + 1)),
+      ArrowLeft: () => setRacks((r) => Math.max(1, r - 1)),
+      ArrowUp: () => setTier((t) => Math.min(MAX_TIER, t + 1)),
+      ArrowDown: () => setTier((t) => Math.max(1, t - 1)),
+    };
+    if (map[e.key]) {
+      e.preventDefault();
+      map[e.key]();
+    }
+  };
 
   return (
     <figure className="rack-card">
       <div className="rack-card__head">
         <span>Fig 1</span>
-        <span>One rack under load</span>
+        <span>{racks} server{racks > 1 ? 's' : ''} × {RAM_GB[tier - 1]} GB</span>
       </div>
       <div
         ref={stageRef}
-        className="iso fig-rack rack-card__stage"
+        className={`iso fig-rack rack-card__stage${dragging ? ' is-dragging' : ''}`}
         tabIndex={0}
-        role="slider"
-        aria-label="Traffic into the rack. Move the pointer across the figure, or use the arrow keys, to change the request rate."
-        aria-valuemin={MIN}
-        aria-valuemax={MAX}
-        dangerouslySetInnerHTML={{ __html: RACK_SVG }}
-      />
+        role="group"
+        aria-label={`Server rack figure: ${racks} servers, ${RAM_GB[tier - 1]} GB each. Drag sideways or press left and right to add or remove servers; drag up or down, or press up and down, to change memory per server.`}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onKeyDown={onKeyDown}
+      >
+        <div key={`${racks}-${tier}`} className="rack-card__art" dangerouslySetInnerHTML={{ __html: scene.svg }} />
+        <span className="rack-card__axis rack-card__axis--x" aria-hidden="true"><MoveHorizontal size={16} /> scale out</span>
+        <span className="rack-card__axis rack-card__axis--y" aria-hidden="true"><MoveVertical size={16} /> scale up</span>
+      </div>
       <figcaption className="rack-card__foot">
-        <span>Move across the rack to change the traffic</span>
-        <output ref={readoutRef} aria-live="off" />
+        <div className="rack-card__ctrls">
+          <span className="rack-card__ctrl">
+            <span>Servers</span>
+            <button type="button" onClick={() => setRacks((r) => Math.max(1, r - 1))} disabled={racks <= 1} aria-label="Remove a server">−</button>
+            <output>{racks}</output>
+            <button type="button" onClick={() => setRacks((r) => Math.min(MAX_RACKS, r + 1))} disabled={racks >= MAX_RACKS} aria-label="Add a server">+</button>
+          </span>
+          <span className="rack-card__ctrl">
+            <span>Memory</span>
+            <button type="button" onClick={() => setTier((t) => Math.max(1, t - 1))} disabled={tier <= 1} aria-label="Less memory per server">−</button>
+            <output>{RAM_GB[tier - 1]} GB</output>
+            <button type="button" onClick={() => setTier((t) => Math.min(MAX_TIER, t + 1))} disabled={tier >= MAX_TIER} aria-label="More memory per server">+</button>
+          </span>
+        </div>
+        <output ref={readoutRef} className="rack-card__readout" />
       </figcaption>
     </figure>
   );

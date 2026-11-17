@@ -118,7 +118,8 @@ function buildScene() {
       cache: icon(BUILT.cache),
       db: BUILT.db.map(icon),
     },
-    leftLabel: at([LEFT_C[0] - 20, LEFT_C[1] + 70, -8]),
+    // caption anchors: centre of each object, as a share of the drawing's width
+    anchors: [at([...LEFT_C, 0])[0], at([...along(0.5), 0])[0], at([...RIGHT_C, 0])[0]].map((x) => (x / W) * 100),
   };
 }
 
@@ -196,15 +197,15 @@ export default function BrokenToBuilt() {
       </svg>
       </div>
       <div className="bb__captions">
-        <div className="bb__caption bb__caption--red">
+        <div className="bb__caption bb__caption--red" style={{ '--at': `${s.anchors[0]}%` }}>
           <h3>Unsorted machines</h3>
           <p>No balancing, no copies, no buffer. One crash and the whole thing goes dark.</p>
         </div>
-        <div className="bb__caption bb__caption--amber">
+        <div className="bb__caption bb__caption--amber" style={{ '--at': `${s.anchors[1]}%` }}>
           <h3>Four principles</h3>
           <p>Each gate is a lesson in the course and a component in the simulator.</p>
         </div>
-        <div className="bb__caption bb__caption--teal">
+        <div className="bb__caption bb__caption--teal" style={{ '--at': `${s.anchors[2]}%` }}>
           <h3>A working architecture</h3>
           <p>Users reach a load balancer, three app servers, a cache and two databases.</p>
         </div>

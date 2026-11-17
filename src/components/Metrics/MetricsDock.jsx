@@ -20,10 +20,15 @@ function formatTick(value, unit) {
   return `${v}${unit}`;
 }
 
+// Before the first run there is no history; a flat 0-10 s placeholder keeps both axes and their
+// numbers on screen so the scales are readable before anything moves.
+const IDLE_HISTORY = [0, 2.5, 5, 7.5, 10].map((t) => ({ t, throughput: 0, errorRate: 0, p95: 0 }));
+
 function MiniChart({ data, dataKey, color, unit, label, floor }) {
+  const idle = data.length < 2;
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 0 }}>
+      <LineChart data={idle ? IDLE_HISTORY : data} margin={{ top: 6, right: 8, bottom: 0, left: 0 }}>
         <CartesianGrid stroke="var(--grid-line)" vertical={false} />
         <XAxis
           dataKey="t"
@@ -48,10 +53,10 @@ function MiniChart({ data, dataKey, color, unit, label, floor }) {
         />
         <Tooltip
           contentStyle={{ background: 'var(--panel)', border: '1px solid var(--border)', fontSize: 11 }}
-          labelFormatter={(t) => `t = ${Number(t).toFixed(1)} s`}
+          labelFormatter={(t) => (idle ? 'Run the simulation to record data' : `t = ${Number(t).toFixed(1)} s`)}
           formatter={(v) => [`${Math.round(v * 10) / 10} ${unit.trim()}`, label]}
         />
-        <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={false} isAnimationActive={false} />
+        {!idle && <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={false} isAnimationActive={false} />}
       </LineChart>
     </ResponsiveContainer>
   );

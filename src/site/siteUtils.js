@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Adds .is-in to every [data-reveal] element inside the ref once it scrolls into view.
 // Content is visible by default; the hidden start state only applies once JS has marked
@@ -28,4 +28,25 @@ export function useReveal() {
     return () => io.disconnect();
   }, []);
   return ref;
+}
+
+// True once the element has scrolled into view (and stays true).
+export function useInViewOnce(ref, margin = '0px 0px -15% 0px') {
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !('IntersectionObserver' in window)) {
+      setSeen(true);
+      return undefined;
+    }
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        setSeen(true);
+        io.disconnect();
+      }
+    }, { rootMargin: margin });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref, margin]);
+  return seen;
 }

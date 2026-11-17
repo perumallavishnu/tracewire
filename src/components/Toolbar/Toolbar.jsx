@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { useSimStore } from '../../store/useSimStore';
 import { useDiagramStore } from '../../store/useDiagramStore';
 import { useUiStore } from '../../store/useUiStore';
+import { CircleHelp } from 'lucide-react';
 
 const SPEEDS = [0.5, 1, 2, 4];
 
@@ -21,6 +22,7 @@ export default function Toolbar() {
   const clearCanvas = useDiagramStore((s) => s.clearCanvas);
   const runScore = useUiStore((s) => s.runScore);
   const setLearnOpen = useUiStore((s) => s.setLearnOpen);
+  const setTourOpen = useUiStore((s) => s.setTourOpen);
   const interviewActive = useUiStore((s) => s.interview.active);
   const startInterview = useUiStore((s) => s.startInterview);
   const endInterview = useUiStore((s) => s.endInterview);
@@ -98,6 +100,9 @@ export default function Toolbar() {
           {interviewActive ? 'End interview' : 'Practice interview'}
         </button>
         <button className="tool-btn" onClick={() => setLearnOpen(true)}>Learn</button>
+        <button className="tool-btn toolbar__help" onClick={() => setTourOpen(true)} title="Replay the guided tour of the simulator">
+          <CircleHelp size={14} aria-hidden="true" /> Guide
+        </button>
       </div>
 
       <div className="toolbar__file-ops">
