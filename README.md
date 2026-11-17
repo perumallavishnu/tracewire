@@ -13,7 +13,7 @@ every section, eight practice problems with reference designs, and 45
 projects to build. Everything runs in your browser. No account, no server,
 no paywall.
 
-**Version 1.0.0** · [Changelog](CHANGELOG.md) · MIT licence
+**Version 1.0.1** · [Changelog](CHANGELOG.md) · MIT licence
 
 ![Tracewire landing page](docs/screenshots/interface-overview.png)
 
@@ -85,6 +85,8 @@ no paywall.
   scene, the course zone by zone, learning paths and a FAQ.
 - Loading skeletons, a custom 404 page, keyboard support throughout and a
   reduced-motion mode.
+- Responsive at desktop, tablet and phone sizes, including the simulator,
+  which becomes a single scrolling column on small screens.
 
 ## Tech stack
 
