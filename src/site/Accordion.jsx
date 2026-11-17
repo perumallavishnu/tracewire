@@ -6,11 +6,12 @@ export default function Accordion({ items, initial = 0 }) {
   const [open, setOpen] = useState(initial);
   const base = useId();
   return (
-    <div className="faq__list">
+    // the reveal sits on the list: rows re-render their class on every toggle, which would drop it
+    <div className="faq__list" data-reveal>
       {items.map(([q, a], i) => {
         const isOpen = open === i;
         return (
-          <div key={q} className={`faq__item${isOpen ? ' is-open' : ''}`} data-reveal>
+          <div key={q} className={`faq__item${isOpen ? ' is-open' : ''}`}>
             <h3 className="faq__q">
               <button
                 type="button"
