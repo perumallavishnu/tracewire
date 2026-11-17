@@ -2,6 +2,16 @@
 
 All notable changes to Tracewire. Versions follow [semantic versioning](https://semver.org).
 
+## 1.0.1 — 2026-11-17
+
+Responsive and spacing fixes, audited at 1440, 768 and 390 px on every page (landing, lessons, roadmap, 404, simulator): no overlapping text, no sideways overflow, tap targets of at least 24 px on phones.
+
+### Fixed
+- The event log tile on the landing page overlapped its caption; it now lays out in flow at every width.
+- The simulator overflowed on tablets and phones. It now wraps its toolbar below 1280 px and becomes a single scrolling column below 900 px (canvas first, then components, inspector and metrics), with the minimap hidden on small screens.
+- Phone tap targets: navigation, hero links and breadcrumbs are taller.
+- The traffic dial's third control and third result no longer sit alone at half width on phones.
+
 ## 1.0.0 — 2026-11-17
 
 The first release: a free system design course built around the simulator.
