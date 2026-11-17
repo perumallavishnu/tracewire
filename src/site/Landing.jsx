@@ -1,5 +1,5 @@
+import { lazy, Suspense } from 'react';
 import { LEVELS, COURSE_STATS } from '../course';
-import LiveDial from './LiveDial';
 import { SiteNav, Trace, TraceBullet } from './shared';
 import { useReveal } from './siteUtils';
 import Accordion from './Accordion';
@@ -7,8 +7,10 @@ import { FAQ } from './faqData';
 import { ComingNext, LearningPaths } from './Paths';
 import CountUp from './CountUp';
 import { EventLog, InterviewTimer, KillRevive } from './BoardLive';
-import RackFigure from './figure/RackFigure';
-import BrokenToBuilt from './figure/BrokenToBuilt';
+// the interactive figures load after the text has painted; placeholders keep the layout still
+const RackFigure = lazy(() => import('./figure/RackFigure'));
+const LiveDial = lazy(() => import('./LiveDial'));
+const BrokenToBuilt = lazy(() => import('./figure/BrokenToBuilt'));
 import './site.css';
 
 const MOSAIC = [
@@ -43,7 +45,7 @@ export default function Landing() {
             </div>
           </div>
         </div>
-        <div className="hero__figure"><RackFigure /></div>
+        <div className="hero__figure"><Suspense fallback={<div className="figure-wait figure-wait--rack" />}><RackFigure /></Suspense></div>
       </section>
 
       <section className="show" id="dial">
@@ -53,7 +55,7 @@ export default function Landing() {
             With an 85% cache the database sees about 3,000 requests a second. Remove the cache and it gets nearly 20,000, and two thirds of them fail. Move the dial and see for yourself.
           </p>
         </div>
-        <div data-reveal><LiveDial /></div>
+        <div data-reveal><Suspense fallback={<div className="figure-wait figure-wait--dial" />}><LiveDial /></Suspense></div>
         <div className="show__actions" data-reveal>
           <a className="cell cell--ink" href="/sim?problem=link-shortener">Build it in the simulator</a>
           <a className="cell" href="/learn/caching-101">Read the caching lesson</a>
@@ -65,7 +67,7 @@ export default function Landing() {
           <h2 data-reveal>From a pile of servers to a system</h2>
           <p data-reveal>Machines alone fall over. Four principles, applied in order, turn them into something that stays up: spread the load, cache the hot reads, replicate the data, queue the slow work.</p>
         </div>
-        <div data-reveal><BrokenToBuilt /></div>
+        <div data-reveal><Suspense fallback={<div className="figure-wait figure-wait--bb" />}><BrokenToBuilt /></Suspense></div>
       </section>
 
       <section className="stats">
@@ -156,7 +158,7 @@ export default function Landing() {
       </section>
 
       <footer className="foot">
-        <div className="foot__mark" aria-label="Tracewire">
+        <div className="foot__mark" role="img" aria-label="Tracewire">
           {'TRACEWIRE'.split('').map((ch, i) => (
             <span key={i} style={{ height: `${[100, 72, 88, 64, 94, 78, 60, 86, 70][i]}%` }} aria-hidden="true">{ch}</span>
           ))}

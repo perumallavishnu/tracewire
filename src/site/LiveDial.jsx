@@ -180,13 +180,13 @@ export default function LiveDial() {
 
         <dl className="dial__readout">
           <div className={`is-${served >= 99 ? 'signal' : served >= 90 ? 'warn' : 'error'}`}>
-            <dt>Requests served</dt><dd>{served.toFixed(1)}%</dd><span>target 99%</span>
+            <dt>Requests served</dt><dd>{served.toFixed(1)}%</dd><dd className="dial__note-dd">target 99%</dd>
           </div>
           <div className={`is-${a.p99Ms <= P99_TARGET ? 'signal' : a.p99Ms <= P99_TARGET * 2 ? 'warn' : 'error'}`}>
-            <dt>p99 latency</dt><dd>{Math.round(a.p99Ms)} ms</dd><span>target {P99_TARGET} ms</span>
+            <dt>p99 latency</dt><dd>{Math.round(a.p99Ms)} ms</dd><dd className="dial__note-dd">target {P99_TARGET} ms</dd>
           </div>
           <div className={`is-${toneOf(n.db.utilization)}`}>
-            <dt>Database load</dt><dd>{formatQps(n.db.inQps)}/s</dd><span>{Math.round(n.db.utilization * 100)}% of capacity</span>
+            <dt>Database load</dt><dd>{formatQps(n.db.inQps)}/s</dd><dd className="dial__note-dd">{Math.round(n.db.utilization * 100)}% of capacity</dd>
           </div>
         </dl>
 

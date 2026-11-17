@@ -9,7 +9,7 @@
     { "source": "/learn", "destination": "/learn/how-the-web-works", "permanent": true }
   ],
   "rewrites": [
-    { "source": "/learn/:section/:sub", "destination": "/learn/:section/index.html" }
+    { "source": "/learn/:section/:sub", "destination": "/learn/:section" }
   ],
   "headers": [
     {
