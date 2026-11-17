@@ -3,6 +3,7 @@ import LiveDial from './LiveDial';
 import { SiteNav, Trace, TraceBullet } from './shared';
 import { useReveal } from './siteUtils';
 import Accordion from './Accordion';
+import { ComingNext, LearningPaths } from './Paths';
 import CountUp from './CountUp';
 import { EventLog, InterviewTimer, KillRevive } from './BoardLive';
 import RackFigure from './figure/RackFigure';
@@ -144,6 +145,10 @@ export default function Landing() {
           </div>
         ))}
       </section>
+
+      <LearningPaths />
+
+      <ComingNext />
 
       <section className="faq">
         <h2 data-reveal>Questions, answered</h2>

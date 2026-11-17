@@ -1,7 +1,7 @@
 {
   "name": "tracewire",
   "description": "A free, open-source, self-hosted system design simulator — build architectures, run live traffic, and inject chaos.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "license": "MIT",
   "repository": {
     "type": "git",

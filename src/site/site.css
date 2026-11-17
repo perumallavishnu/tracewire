@@ -357,6 +357,55 @@
 .menu__level--warn .menu__build { color: var(--amber); }
 .menu__level--error .menu__build { color: #ff8a8d; }
 
+/* ---------- learning paths ---------- */
+
+.paths { padding: var(--section) var(--gutter) 0; }
+.paths__head { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 40px; align-items: end; }
+.paths__head h2, .next__head h2 { font-size: var(--step-l); line-height: 1; }
+.paths__head p, .next__head p { color: var(--muted); max-width: 46ch; }
+.paths__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 48px; }
+.path { background: var(--field); padding: 32px 28px; display: flex; flex-direction: column; gap: 10px; }
+.path h3 { font-size: var(--step-m); }
+.path--signal h3 { color: var(--accent); }
+.path--warn h3 { color: var(--amber); }
+.path--error h3 { color: #ff8a8d; }
+.path > p { color: var(--muted); }
+.path__steps { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.path__steps li { display: grid; grid-template-columns: 28px 1fr auto; align-items: baseline; gap: 10px; padding: 10px 12px; background: var(--field-2); transition: background-color 160ms; }
+.path__steps li:hover { background: var(--field-3); }
+.path__n { font-family: var(--display); font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.path__steps a { text-decoration: none; font-weight: 600; }
+.path__steps a:hover { color: var(--accent); }
+.path__kind { font-size: 14px; color: var(--muted); }
+
+/* ---------- coming next ---------- */
+
+.next { padding: var(--section) var(--gutter) 0; }
+.next__head { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 40px; align-items: end; }
+.next__list { list-style: none; margin: 48px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.next__item { background: var(--field); padding: 26px 24px 28px; display: flex; flex-direction: column; gap: 8px; }
+.next__item h3 { font-size: 22px; }
+.next__item p { color: var(--muted); }
+.next__when { align-self: flex-start; font-size: 14px; font-weight: 600; padding: 2px 10px; }
+.next__item--next .next__when { background: rgba(79, 209, 197, 0.14); color: var(--accent); }
+.next__item--later .next__when { background: var(--field-3); color: var(--muted); }
+
+/* ---------- 404 ---------- */
+
+.nf-page { display: flex; flex-direction: column; min-height: 100svh; }
+.nf { flex: 1; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 40px; padding: 24px var(--gutter) 64px; }
+.nf__code { font-family: var(--display); font-weight: 700; font-size: clamp(96px, 16vw, 240px); line-height: 0.85; letter-spacing: -0.06em; color: var(--accent); }
+.nf h1 { font-size: var(--step-l); line-height: 1; margin-top: 18px; max-width: 12em; }
+.nf__lede { margin-top: 18px; max-width: 44ch; color: var(--muted); }
+.nf__lede code { font-family: inherit; color: var(--ink); background: var(--field-2); padding: 1px 6px; word-break: break-all; }
+.nf__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin-top: 32px; }
+.nf__actions a:not(.btn) { text-underline-offset: 4px; }
+.nf__actions a:not(.btn):hover { color: var(--accent); }
+.nf__art { position: relative; aspect-ratio: 700 / 520; background: var(--field); overflow: hidden; }
+.nf__art .trace { position: absolute; inset: 0; width: 100%; height: 100%; }
+.nf__port { position: absolute; left: 62.6%; top: 61%; width: 9%; aspect-ratio: 1; background: var(--red); animation: nf-blink 1.4s steps(2) infinite; }
+@keyframes nf-blink { 50% { opacity: 0.25; } }
+
 /* ---------- faq ---------- */
 
 .faq { display: grid; grid-template-columns: 4fr 8fr; gap: 40px; padding: var(--section) var(--gutter) 0; align-items: start; }
@@ -423,6 +472,7 @@
 .site [data-reveal]:nth-child(4) { transition-delay: 210ms; }
 
 @media (prefers-reduced-motion: reduce) {
+  .nf__port { animation: none; }
   .ui-util__bar span, .ui-toggle__track, .ui-toggle__track span, .ui-button span, .board__log p { transition: none; }
   .ui-util__bar span { transform: none; }
   .board__log p { opacity: 1; transform: none; }
@@ -473,6 +523,8 @@
   .board__caption p { font-size: 14px; }
   .menu__items { grid-template-columns: 1fr; gap: 24px; }
   .faq { grid-template-columns: 1fr; }
+  .paths__head, .next__head, .nf { grid-template-columns: 1fr; }
+  .paths__grid, .next__list { grid-template-columns: 1fr; }
   .faq h2 { position: static; font-size: 9vw; }
   .faq__q button { font-size: 17px; min-height: 64px; padding: 12px 20px; }
   .close { grid-template-columns: 1fr; min-height: 0; }

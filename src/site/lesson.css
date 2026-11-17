@@ -51,6 +51,15 @@
 .ls-article--warn .ls-concepts li::marker { color: var(--amber); }
 .ls-article--error .ls-concepts li::marker { color: var(--red); }
 
+.ls-example { margin-top: 80px; background: var(--field); padding: 32px; scroll-margin-top: 24px; }
+.ls-example h2 { font-size: clamp(24px, 2.2vw, 30px); line-height: 1.15; }
+.ls-example__scenario { margin-top: 14px; font-size: 18px; line-height: 1.6; }
+.ls-example__steps { margin: 20px 0 0; padding: 0; list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 8px; }
+.ls-example__steps li { counter-increment: step; display: grid; grid-template-columns: 34px 1fr; gap: 12px; background: var(--field-2); padding: 14px 16px; line-height: 1.6; }
+.ls-example__steps li::before { content: counter(step); font-family: var(--display); font-weight: 600; color: var(--accent); }
+.ls-example__code { margin: 20px 0 0; padding: 18px 20px; background: var(--ground); overflow-x: auto; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 14px; line-height: 1.6; color: #cfd8e0; }
+.ls-example__takeaway { margin-top: 20px; padding: 16px 18px; background: rgba(79, 209, 197, 0.1); line-height: 1.6; }
+.ls-example__takeaway strong { color: var(--accent); }
 .ls-practice, .ls-nextup { margin-top: 80px; }
 .ls-practice { background: var(--accent); color: var(--accent-ink); padding: 32px; }
 .ls-practice h2, .ls-nextup h2 { font-size: 28px; }

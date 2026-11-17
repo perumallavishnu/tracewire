@@ -1,3 +1,5 @@
+import Logo from '../components/Logo';
+
 // The one motif: Tracewire's right-angled trace with a request pulse riding it.
 // Drawn from the same step geometry the simulator uses for its connections.
 export function Trace({ className = '', d, width = 1000, height = 600, stroke = 64, pulse = true, label }) {
@@ -39,7 +41,7 @@ export function SiteNav({ current }) {
   ];
   return (
     <header className="site-nav">
-      <a className="site-nav__mark" href="#/">Tracewire</a>
+      <a className="site-nav__mark" href="#/" aria-label="Tracewire home"><Logo size={30} /></a>
       <nav aria-label="Main">
         {links.map(([id, label, to]) => (
           <a key={id} href={to} aria-current={current === id ? 'page' : undefined}>{label}</a>

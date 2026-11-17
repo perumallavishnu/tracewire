@@ -3,6 +3,7 @@ import { useSimStore } from '../../store/useSimStore';
 import { useDiagramStore } from '../../store/useDiagramStore';
 import { useUiStore } from '../../store/useUiStore';
 import { CircleHelp } from 'lucide-react';
+import Logo from '../Logo';
 
 const SPEEDS = [0.5, 1, 2, 4];
 
@@ -59,7 +60,7 @@ export default function Toolbar() {
   return (
     <header className="toolbar">
       <a className="toolbar__brand" href="#/" title="Back to the Tracewire home page">
-        <span className="toolbar__logo">◈</span>
+        <Logo size={24} withWord={false} />
         <span className="toolbar__title">Tracewire</span>
         <span className="toolbar__subtitle">system design simulator</span>
       </a>

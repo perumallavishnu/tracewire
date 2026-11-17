@@ -194,7 +194,7 @@ export default function RackFigure() {
   return (
     <figure className="rack-card">
       <div className="rack-card__head">
-        <span>Fig 1</span>
+        {/* <span>Fig 1</span> */}
         <span>{racks} server{racks > 1 ? 's' : ''} × {RAM_GB[tier - 1]} GB</span>
       </div>
       <div
