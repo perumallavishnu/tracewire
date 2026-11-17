@@ -1,0 +1,64 @@
+/* Guided tour overlay. The card is a real floating layer, so it may carry a shadow. */
+
+.tour { position: fixed; inset: 0; z-index: 100; }
+.tour__shade {
+  position: fixed;
+  background: rgba(4, 6, 8, 0.62);
+  backdrop-filter: blur(3px) saturate(0.8);
+  -webkit-backdrop-filter: blur(3px) saturate(0.8);
+  transition: top 380ms cubic-bezier(0.2, 0.7, 0.1, 1), left 380ms cubic-bezier(0.2, 0.7, 0.1, 1), width 380ms cubic-bezier(0.2, 0.7, 0.1, 1), height 380ms cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+.tour__ring {
+  position: fixed;
+  pointer-events: none;
+  outline: 2px solid var(--accent-signal);
+  outline-offset: 0;
+  border-radius: 4px;
+  box-shadow: 0 0 0 6px rgba(79, 209, 197, 0.16);
+  transition: top 380ms cubic-bezier(0.2, 0.7, 0.1, 1), left 380ms cubic-bezier(0.2, 0.7, 0.1, 1), width 380ms cubic-bezier(0.2, 0.7, 0.1, 1), height 380ms cubic-bezier(0.2, 0.7, 0.1, 1);
+  animation: tour-pulse 2.4s ease-in-out infinite;
+}
+@keyframes tour-pulse { 50% { box-shadow: 0 0 0 10px rgba(79, 209, 197, 0.06); } }
+
+.tour__card {
+  position: fixed;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px 16px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+  font-family: var(--font-body);
+  color: var(--text);
+  animation: tour-in 320ms cubic-bezier(0.2, 0.7, 0.1, 1);
+  transition: top 380ms cubic-bezier(0.2, 0.7, 0.1, 1), left 380ms cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+@keyframes tour-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.tour__head { display: flex; justify-content: space-between; align-items: center; }
+.tour__count { font-size: 12px; color: var(--accent-signal); font-weight: 600; letter-spacing: 0.02em; }
+.tour__close { background: none; border: 0; color: var(--text-muted); cursor: pointer; padding: 4px; display: grid; place-items: center; border-radius: 4px; }
+.tour__close:hover { color: var(--text); background: var(--panel-alt); }
+.tour__title { font-family: var(--font-display); font-size: 19px; font-weight: 600; margin: 8px 0 6px; letter-spacing: -0.01em; }
+.tour__body { margin: 0; font-size: 14px; line-height: 1.55; color: #c3ccd5; }
+.tour__progress { display: flex; gap: 4px; margin: 16px 0 14px; }
+.tour__progress span { flex: 1; height: 3px; background: var(--border); border-radius: 2px; transition: background-color 300ms; }
+.tour__progress span.is-done { background: var(--accent-signal); }
+.tour__actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.tour__skip { background: none; border: 0; color: var(--text-muted); font-size: 13px; cursor: pointer; padding: 6px 0; }
+.tour__skip:hover { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.tour__nav { display: flex; gap: 8px; }
+.tour__btn {
+  font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  padding: 8px 16px; border-radius: 5px; cursor: pointer;
+  background: var(--panel-alt); color: var(--text); border: 1px solid var(--border);
+  transition: border-color 140ms, transform 120ms, background-color 140ms;
+}
+.tour__btn:hover { border-color: var(--accent-info); }
+.tour__btn:active { transform: scale(0.97); }
+.tour__btn--primary { background: var(--accent-signal); color: #04211e; border-color: var(--accent-signal); }
+.tour__btn--primary:hover { background: #7ce3d9; border-color: #7ce3d9; }
+
+.toolbar__help { display: inline-flex; align-items: center; gap: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tour__shade, .tour__ring, .tour__card { transition: none; animation: none; }
+}

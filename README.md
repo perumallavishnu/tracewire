@@ -1,22 +1,21 @@
+<p align="center"><img src="public/favicon.svg" width="72" alt="Tracewire logo"></p>
+
 # Tracewire
 
-**Tracewire** is a free, open-source, self-hosted system design simulator.
-Drag out components — load balancers, services, databases, caches, queues,
-CDNs, and more — wire them together on a canvas, and run live synthetic
-traffic through the architecture. Inject real failure scenarios (kill a
-node, sever a connection, spike latency, drop capacity, or let the built-in
-chaos monkey do it for you) and watch retries, backpressure, and cascading
-failures play out in real time on live charts.
+**Learn system design by running it.** Tracewire is a free, open-source
+system design course with a simulator built in. Read a lesson, draw the
+architecture on a canvas, push real traffic through it, break it on
+purpose, and get a 100-point score with a fix for every miss.
 
-It's built for learning and teaching system design, prototyping
-architectures, and stress-testing "what happens if X goes down" scenarios
-without touching real infrastructure.
+It covers high-level design and low-level design from beginner to advanced:
+19 sections, 60 lessons, 255 concepts, a worked example with real numbers in
+every section, eight practice problems with reference designs, and 45
+projects to build. Everything runs in your browser. No account, no server,
+no paywall.
 
-It also works as an interview trainer: pick a practice problem, design
-against its requirements, size it with the capacity planner, and get a
-scored breakdown with concrete fixes.
+**Version 1.0.0** · [Changelog](CHANGELOG.md) · MIT licence
 
-![Tracewire interface overview](docs/screenshots/interface-overview.png)
+![Tracewire landing page](docs/screenshots/interface-overview.png)
 
 ---
 
@@ -25,8 +24,10 @@ scored breakdown with concrete fixes.
 - [Features](#features)
 - [Tech stack](#tech-stack)
 - [Setup guide](#setup-guide)
+- [Deploying to Vercel](#deploying-to-vercel)
 - [How to use it](#how-to-use-it)
 - [Project structure](#project-structure)
+- [What is coming next](#what-is-coming-next)
 - [Contributing](#contributing)
 - [Reporting bugs / getting help](#reporting-bugs--getting-help)
 - [License](#license)
@@ -35,71 +36,55 @@ scored breakdown with concrete fixes.
 
 ## Features
 
-- **Visual architecture canvas** — drag-and-drop components, connect them
-  with a click-and-drag, pan/zoom, minimap.
-- **39 built-in components** in six searchable categories:
-  - *Traffic*: Traffic Generator, Client
-  - *Networking*: DNS, CDN Edge, Origin Shield, Load Balancer (round robin /
-    least-connections / random), Reverse Proxy, API Gateway, Rate Limiter
-  - *Compute*: Service, Auth Service, WebSocket Server, Worker Pool, Task
-    Scheduler, Stream Processor, Notification Service
-  - *Storage*: SQL, NoSQL, Cache, Object Storage, File Store, Search Index,
-    Graph DB, Time-Series DB, Data Warehouse, Vector DB, Geospatial Index
-  - *Messaging*: Message Queue, Pub/Sub Broker, Event Log
-  - *Infrastructure*: Circuit Breaker, Monitoring, Service Mesh, Service
-    Discovery, Coordination Service, Distributed Lock, ID Generator,
-    Sharded Counter, Config Service
-- **Replicas** on every scalable component, so capacity planning is a
-  number you can turn, and a single replica shows up as a single point of
-  failure.
-- **Practice problems** — eight design problems (link shortener, social
-  feed, group chat, API quotas, video streaming, ride matching,
-  notifications, flash-sale checkout), each with peak requirements,
-  constraints, hints revealed one at a time, and a loadable reference design.
-- **Design scoring** — grades the canvas out of 100 across requirements,
-  scalability, availability, latency and cost. It tests the design at the
-  problem's full load (tens of thousands of req/s) with a steady-state model:
-  per-component throughput from Little's law, M/M/c queueing delay,
-  critical-path p99, single-point-of-failure detection and replica sizing.
-  Every missed check comes with a fix.
-- **Capacity planner** — back-of-envelope estimator (DAU → QPS, storage,
-  egress) plus a per-component load table and one-click "right-size
-  replicas".
-- **Trade-offs** — gains, costs and alternatives for the selected component.
-- **Practice interview mode** — six timed phases (clarify → estimate → API &
-  data → high-level design → deep dive → wrap-up) with prompts per phase.
-- **Sticky notes** on the canvas for assumptions and open questions.
-- **Learn drawer** — concept cards (Little's law, queueing, caching,
-  replication, CAP, backpressure, idempotency, SLOs) and this-vs-that
-  comparisons (SQL vs NoSQL, push vs pull, and more).
-- **Keyboard support** — Tab/Enter/arrows on the canvas, Delete, Esc,
-  Space to run/pause, S to score, Enter on a palette item to add it.
-- **Custom component builder** — define your own reusable node type by
-  toggling capacity limits, latency, random failures, queueing, and
-  cache-like hit-rate behavior. No coding required.
-- **Realistic simulation engine**:
-  - Concurrent-capacity limits per component
-  - Processing latency with jitter
-  - Independent failure rates *and* load-induced failures as components
-    approach saturation
-  - Client-side retries with backoff (and retry storms when things go
-    wrong)
-  - Queue backpressure and overflow handling
-  - Load-balanced failover across healthy backends
-  - Caches and CDNs that answer hits locally and only forward misses
-  - Circuit breakers that fail fast while every downstream is down or full
-- **Chaos injection** — kill/revive nodes, sever/heal connections, latency
-  spikes, capacity drops, and an automatic "chaos monkey" mode that breaks
-  things on its own on a timer.
-- **Live metrics** — throughput, error rate, and p50/p95/p99 latency charts
-  that update while the simulation runs, plus a running event log of every
-  incident and recovery.
-- **Save/load** — export and import diagrams as plain JSON files; your last
-  diagram also auto-persists in the browser between sessions.
-- **100% local, 100% free** — no account, no server, no paywall. Everything
-  runs client-side in your browser.
+### The course (`#/roadmap`, `#/learn`)
+- **19 sections, 60 lessons, 255 concepts** in three zones: beginner (one
+  request, end to end), intermediate (many machines, many copies) and
+  advanced (correct, global, observable).
+- **High-level and low-level design**: networking, APIs, databases, caching,
+  estimation, sharding, consistency, queues, reliability, real-time APIs,
+  specialized storage, object modelling and design patterns, consensus,
+  distributed transactions, stream processing, observability, multi-region
+  and security.
+- **A worked example in every section**, with real numbers: why a first page
+  load takes 790 ms, what an 85% cache hit rate is worth, sizing a photo
+  service in five minutes, sharding chat messages, a saga for trip booking,
+  setting an SLO, and a parking-lot class design with code.
+- **Lesson pages** with a section tree, theory, the concepts to learn, the
+  worked example, practice links into the simulator, where the topic leads
+  next, and an on-this-page rail.
+- **A zoomable roadmap** of the whole course: translucent level zones, linked
+  sections listing every lesson and concept, and what you can build after
+  each zone (real products, simulator exercises, class designs).
+- **Three learning paths**: high-level design, low-level design and
+  interview prep.
 
----
+### The simulator (`#/sim`)
+- **39 components** with icons in six searchable categories, from DNS and
+  CDNs to sharded counters and distributed locks, each with replicas and
+  trade-off notes.
+- **Live simulation**: capacity limits, latency with jitter, random and
+  load-induced failures, retries with backoff, queue backpressure, cache
+  hits, circuit breakers, failover.
+- **Chaos**: kill and revive nodes, sever links, spike latency, drop capacity,
+  or let the chaos monkey do it.
+- **Eight practice problems** with requirements, constraints, staged hints and
+  reference designs.
+- **Scoring** out of 100 across requirements, scalability, availability,
+  latency and cost, computed at the problem's full peak load by a
+  steady-state model (Little's law, M/M/c queueing, critical-path p99,
+  single points of failure).
+- **Capacity planner**, **practice interview mode** (six timed phases),
+  sticky notes, a Learn drawer, metrics charts with real axes, and a
+  **guided tour** for first-time visitors (replay it with the Guide button).
+- **Save and share**: JSON export and import; your latest design is kept in
+  the browser.
+
+### The site (`#/`)
+- A landing page with a draggable isometric server rack (scale out and scale
+  up), a live traffic dial, an animated "broken machines to working system"
+  scene, the course zone by zone, learning paths and a FAQ.
+- Loading skeletons, a custom 404 page, keyboard support throughout and a
+  reduced-motion mode.
 
 ## Tech stack
 
@@ -163,6 +148,20 @@ to stand up.
 | Blank page in the browser | Open devtools (F12) → Console tab for the real error. Confirm `npm install` finished without errors first |
 | `npm install` permission errors (macOS/Linux) | Don't use `sudo npm install` — use a Node version manager like [nvm](https://github.com/nvm-sh/nvm) instead |
 | Diagram doesn't persist between sessions | You may be in a private/incognito window, or have cleared site data. Use Export to save a `.json` copy |
+
+---
+
+## Deploying to Vercel
+
+The app is fully static, and `vercel.json` already configures the build.
+
+1. Import the repository at [vercel.com/new](https://vercel.com/new). Vercel
+   detects Vite; the defaults (`npm run build`, output `dist`) are correct.
+2. Or from a terminal: `npx vercel login`, then `npx vercel --prod` in the
+   project folder.
+
+Routes live in the URL hash (`#/roadmap`, `#/learn/caching-101`, `#/sim`),
+so any static host works the same way; unknown paths show the 404 page.
 
 ---
 
@@ -235,6 +234,9 @@ tracewire/
 │   │                            p99, single points of failure, replica sizing
 │   ├── scoring/score.js         100-point design rubric built on analyze.js
 │   ├── problems/                Practice problems and their reference designs
+│   ├── course/                  Course content: levels, sections, lessons, concepts, worked examples, projects
+│   ├── site/                    Landing page, roadmap canvas, lesson pages
+│   ├── router.js                Hash routes: #/, #/roadmap, #/learn/:section, #/sim
 │   ├── interview/phases.js      Mock-interview phases and prompts
 │   ├── learn/concepts.js        Learn drawer content
 │   ├── store/                   Zustand stores (diagram graph, sim runtime, UI)
@@ -244,6 +246,19 @@ tracewire/
 │                                 Interview bar, Learn drawer, Toolbar,
 │                                 Metrics dock, Chaos dock, Node builder modal
 ```
+
+---
+
+## What is coming next
+
+Planned, not yet built:
+
+- Progress tracking across lessons and zones
+- A short quiz at the end of every lesson
+- Twenty practice problems (payments, collaborative editing, metrics, search, job scheduling)
+- A low-level design playground with test scenarios
+- Scripted chaos drills with goals and scores
+- Shareable links to a design, its score and its load test
 
 ---
 
@@ -281,6 +296,16 @@ Good first areas to contribute in:
 - **Questions / general discussion**: use
   [GitHub Discussions](https://github.com/perumallavishnu/tracewire/discussions)
   if enabled on the repo, or open an issue tagged `question`.
+
+---
+
+## Credits
+
+Isometric figures are drawn with the [anatomy](https://github.com/wheresryan22/anatomy)
+kit (MIT), vendored in `src/site/iso/`. The hero rack is drawn at runtime by
+`src/site/figure/rackScene.js`; `node scripts/build-rack-figure.mjs <dir>` writes
+static previews for anatomy's line check. Component icons are from
+[Lucide](https://lucide.dev) (ISC).
 
 ---
 

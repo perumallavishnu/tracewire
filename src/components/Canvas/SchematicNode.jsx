@@ -3,6 +3,7 @@ import { Handle, Position } from '@xyflow/react';
 import { useSimStore } from '../../store/useSimStore';
 import { NODE_TYPES } from '../../nodeDefs/nodeTypes';
 import { useDiagramStore } from '../../store/useDiagramStore';
+import KindBadge from '../KindBadge';
 
 function statusColor(status, hasEffects) {
   if (status === 'down') return 'var(--accent-error)';
@@ -27,7 +28,7 @@ function SchematicNodeInner({ id, data, selected }) {
     >
       <Handle type="target" position={Position.Left} className="tw-handle" />
       <div className="schematic-node__head">
-        <span className="schematic-node__glyph">{glyph}</span>
+        <KindBadge kind={data.kind} glyph={glyph} className="schematic-node__glyph" size={14} />
         <span className="schematic-node__label">{data.label}</span>
         {replicas > 1 && <span className="schematic-node__replicas mono" title={`${replicas} replicas`}>×{replicas}</span>}
       </div>

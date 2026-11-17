@@ -1,7 +1,7 @@
 {
   "name": "tracewire",
   "description": "A free, open-source, self-hosted system design simulator — build architectures, run live traffic, and inject chaos.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@xyflow/react": "^12.11.2",
+    "lucide-react": "^1.73.0",
     "nanoid": "^6.0.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
